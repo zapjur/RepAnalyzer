@@ -10,7 +10,7 @@ export default function Dashboard() {
                 className="bg-red-500 text-white px-4 py-2 rounded"
                 onClick={() => logout({ logoutParams: { returnTo: window.location.origin } })}
             >
-                Wyloguj się
+                Logout
             </button>
         </div>
     );
