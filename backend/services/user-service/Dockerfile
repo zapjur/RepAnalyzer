@@ -2,8 +2,9 @@ FROM golang:1.24.1-alpine AS build
 
 WORKDIR /app
 COPY . .
+
 RUN go mod tidy
-RUN go build -o user-service main.go
+RUN go build -o user-service ./cmd
 
 FROM alpine:latest
 WORKDIR /app
