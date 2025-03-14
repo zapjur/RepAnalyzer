@@ -12,6 +12,7 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 redirect_uri: `${window.location.origin}/dashboard`,
                 audience: import.meta.env.VITE_AUTH0_AUDIENCE,
             }}
+            cacheLocation="localstorage"
         >
             {children}
         </Auth0Provider>

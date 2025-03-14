@@ -9,6 +9,21 @@ import (
 	"api-gateway/internal/handlers"
 )
 
+func corsMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+
+		if r.Method == "OPTIONS" {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+
 func main() {
 	cfg := config.Load()
 
@@ -20,10 +35,13 @@ func main() {
 
 	userHandler := handlers.NewUserHandler(grpcClient)
 
-	http.HandleFunc("/users/", userHandler.GetUser)
+	mux := http.NewServeMux()
+	mux.HandleFunc("/users/", userHandler.GetUser)
+
+	handlerWithCORS := corsMiddleware(mux)
 
 	log.Printf("API Gateway started on port %s", cfg.HTTPPort)
-	if err := http.ListenAndServe(":"+cfg.HTTPPort, nil); err != nil {
+	if err := http.ListenAndServe(":"+cfg.HTTPPort, handlerWithCORS); err != nil {
 		log.Fatal(err)
 	}
 }
