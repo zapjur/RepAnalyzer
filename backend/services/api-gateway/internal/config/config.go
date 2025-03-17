@@ -1,25 +1,40 @@
 package config
 
-import "os"
+import (
+	"log"
+	"os"
+
+	"github.com/joho/godotenv"
+)
 
 type Config struct {
+	GRPCPort           string
+	Auth0Domain        string
 	HTTPPort           string
 	UserServiceAddress string
 }
 
 func Load() *Config {
-	port := os.Getenv("HTTP_PORT")
-	if port == "" {
-		port = "8080"
-	}
+	_ = godotenv.Load()
 
-	userServiceAddr := os.Getenv("USER_SERVICE_ADDR")
-	if userServiceAddr == "" {
-		userServiceAddr = "user-service:50051"
-	}
+	grpcPort := getEnv("GRPC_PORT", "50051")
+	httpPort := getEnv("HTTP_PORT", "8080")
+	auth0Domain := getEnv("AUTH0_DOMAIN", "")
+	userServiceAddress := getEnv("USER_SERVICE_ADDRESS", "user-service:50051")
+
+	log.Println("AUTH0_DOMAIN:", auth0Domain)
 
 	return &Config{
-		HTTPPort:           port,
-		UserServiceAddress: userServiceAddr,
+		GRPCPort:           grpcPort,
+		HTTPPort:           httpPort,
+		Auth0Domain:        auth0Domain,
+		UserServiceAddress: userServiceAddress,
 	}
+}
+
+func getEnv(key, defaultValue string) string {
+	if value, exists := os.LookupEnv(key); exists {
+		return value
+	}
+	return defaultValue
 }

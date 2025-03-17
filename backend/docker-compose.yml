@@ -9,6 +9,8 @@ services:
 
   api-gateway:
     build: ./services/api-gateway
+    env_file:
+      - ./services/api-gateway/.env
     container_name: api-gateway
     ports:
       - "8080:8080"

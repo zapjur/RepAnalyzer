@@ -1,12 +1,13 @@
 package main
 
 import (
+	"api-gateway/internal/handlers"
 	"log"
 	"net/http"
 
+	"api-gateway/internal/auth"
 	"api-gateway/internal/config"
 	"api-gateway/internal/grpc"
-	"api-gateway/internal/handlers"
 )
 
 func corsMiddleware(next http.Handler) http.Handler {
@@ -26,6 +27,7 @@ func corsMiddleware(next http.Handler) http.Handler {
 
 func main() {
 	cfg := config.Load()
+	auth.SetAuth0Domain(cfg.Auth0Domain)
 
 	grpcClient, err := grpc.NewClient(cfg.UserServiceAddress)
 	if err != nil {
@@ -39,9 +41,10 @@ func main() {
 	mux.HandleFunc("/users/", userHandler.GetUser)
 
 	handlerWithCORS := corsMiddleware(mux)
+	handlerWithJWT := auth.JwtMiddleware(handlerWithCORS)
 
 	log.Printf("API Gateway started on port %s", cfg.HTTPPort)
-	if err := http.ListenAndServe(":"+cfg.HTTPPort, handlerWithCORS); err != nil {
+	if err := http.ListenAndServe(":"+cfg.HTTPPort, handlerWithJWT); err != nil {
 		log.Fatal(err)
 	}
 }
