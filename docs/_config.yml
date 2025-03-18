@@ -1,0 +1,6 @@
+remote_theme: pmarsceill/just-the-docs
+title: RepAnalyzer
+description: Documentation for the RepAnalzyer project
+baseurl: "/RepAnalyzer"
+permalink: pretty
+color_scheme: dark
