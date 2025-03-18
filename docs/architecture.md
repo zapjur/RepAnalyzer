@@ -1,7 +1,7 @@
 ---
 layout: default
 title: Main
-nav_exclude: true
+nav_order: 1
 ---
 
-# RepAnalzyer
+# Architecture
