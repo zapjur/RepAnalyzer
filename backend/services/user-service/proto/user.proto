@@ -4,16 +4,15 @@ package user;
 
 option go_package = "./proto;user";
 
-
 message GetUserRequest {
   string auth0_id = 1;
+  string email = 2;
 }
 
 message GetUserResponse {
   string auth0_id = 1;
   string email = 2;
-  string name = 3;
-  bool exists = 4;
+  bool exists = 3;
 }
 
 service UserService {

@@ -26,7 +26,7 @@ func (s *UserServer) GetUser(ctx context.Context, req *pb.GetUserRequest) (*pb.G
 
 	if user == nil {
 		log.Println("User not found, creating new user...")
-		err := repository.CreateUser(req.Auth0Id, "example@example.com") // Tutaj później można pobierać prawdziwy email
+		err := repository.CreateUser(req.Auth0Id, req.Email)
 		if err != nil {
 			return nil, err
 		}
