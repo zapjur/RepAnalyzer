@@ -1,18 +1,28 @@
 package config
 
-import "os"
+import (
+	"os"
+
+	"github.com/joho/godotenv"
+)
 
 type Config struct {
-	GRPCPort string
+	DatabaseURL string
+	GRPCPort    string
 }
 
 func Load() *Config {
-	port := os.Getenv("GRPC_PORT")
-	if port == "" {
-		port = "50051"
-	}
+	_ = godotenv.Load()
 
 	return &Config{
-		GRPCPort: port,
+		DatabaseURL: getEnv("DATABASE_URL", "postgres://user:password@postgres:5432/user_db?sslmode=disable"),
+		GRPCPort:    getEnv("GRPC_PORT", "50051"),
 	}
+}
+
+func getEnv(key, defaultValue string) string {
+	if value, exists := os.LookupEnv(key); exists {
+		return value
+	}
+	return defaultValue
 }
