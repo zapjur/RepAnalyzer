@@ -6,6 +6,8 @@ import {Link, Outlet} from "react-router-dom";
 const Dashboard: React.FC = () => {
     const { user, logout, getAccessTokenSilently, isAuthenticated } = useAuth0();
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const [selectedExercise, setSelectedExercise] = useState("Squat");
 
     useEffect(() => {
         if (isAuthenticated && user?.sub) {
@@ -24,6 +26,28 @@ const Dashboard: React.FC = () => {
             console.error('Failed to fetch user:', error);
         }
     };
+
+    const handleUpload = async () => {
+        if (!selectedFile) return alert("Please select a file first!");
+
+        const formData = new FormData();
+        formData.append("file", selectedFile);
+        formData.append("exercise", selectedExercise);
+
+        try {
+            const response = await apiClient.post("/upload", formData, {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
+            });
+            console.log("Upload success:", response.data);
+            setIsModalOpen(false);
+        } catch (error) {
+            console.error("Upload failed:", error);
+            alert("Upload failed!");
+        }
+    };
+
 
 
     return (
@@ -76,7 +100,11 @@ const Dashboard: React.FC = () => {
 
                         <div className="mb-4">
                             <label className="block text-sm font-medium text-gray-700 mb-1">Exercise</label>
-                            <select className="w-full border border-gray-300 rounded px-3 py-2">
+                            <select
+                                className="w-full border border-gray-300 rounded px-3 py-2"
+                                value={selectedExercise}
+                                onChange={(e) => setSelectedExercise(e.target.value)}
+                            >
                                 <option>Squat</option>
                                 <option>Bench Press</option>
                                 <option>Deadlift</option>
@@ -85,7 +113,12 @@ const Dashboard: React.FC = () => {
 
                         <div className="mb-4">
                             <label className="block text-sm font-medium text-gray-700 mb-1">Choose a file</label>
-                            <input type="file" accept="video/*" className="w-full" />
+                            <input
+                                type="file"
+                                accept="video/*"
+                                className="w-full"
+                                onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                            />
                         </div>
 
                         <div className="flex justify-end gap-2">
@@ -96,6 +129,7 @@ const Dashboard: React.FC = () => {
                                 Cancel
                             </button>
                             <button
+                                onClick={handleUpload}
                                 className="px-4 py-2 bg-yellow-400 rounded hover:bg-yellow-500"
                             >
                                 Upload

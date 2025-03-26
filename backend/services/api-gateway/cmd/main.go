@@ -1,13 +1,15 @@
 package main
 
 import (
-	"api-gateway/internal/handlers"
 	"log"
 	"net/http"
+
+	"github.com/go-chi/chi/v5"
 
 	"api-gateway/internal/auth"
 	"api-gateway/internal/config"
 	"api-gateway/internal/grpc"
+	"api-gateway/internal/handlers"
 )
 
 func corsMiddleware(next http.Handler) http.Handler {
@@ -36,15 +38,18 @@ func main() {
 	defer grpcClient.Close()
 
 	userHandler := handlers.NewUserHandler(grpcClient)
+	videoHandler := handlers.NewVideoHandler()
 
-	mux := http.NewServeMux()
-	mux.HandleFunc("/users/", userHandler.GetUser)
+	r := chi.NewRouter()
 
-	handlerWithCORS := corsMiddleware(mux)
-	handlerWithJWT := auth.JwtMiddleware(handlerWithCORS)
+	r.Use(corsMiddleware)
+	r.Use(auth.JwtMiddleware)
+
+	r.Get("/users/{auth0ID}", userHandler.GetUser)
+	r.Post("/upload", videoHandler.UploadVideo)
 
 	log.Printf("API Gateway started on port %s", cfg.HTTPPort)
-	if err := http.ListenAndServe(":"+cfg.HTTPPort, handlerWithJWT); err != nil {
+	if err = http.ListenAndServe(":"+cfg.HTTPPort, r); err != nil {
 		log.Fatal(err)
 	}
 }

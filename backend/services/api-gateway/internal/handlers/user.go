@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"github.com/go-chi/chi/v5"
 	"net/http"
 	"strings"
 
@@ -38,7 +39,11 @@ func (h *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auth0ID := strings.TrimPrefix(r.URL.Path, "/users/")
+	auth0ID := chi.URLParam(r, "auth0ID")
+	if auth0ID == "" {
+		http.Error(w, "Missing user ID in path", http.StatusBadRequest)
+		return
+	}
 
 	resp, err := h.client.UserService.GetUser(r.Context(), &pb.GetUserRequest{
 		Auth0Id: auth0ID,
