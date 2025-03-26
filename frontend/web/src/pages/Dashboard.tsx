@@ -1,7 +1,8 @@
 import React, { useEffect } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 import apiClient, { setupInterceptors } from '../api/axios';
-import { Link } from "react-router-dom";
+import {Link, Outlet} from "react-router-dom";
+import squat from "./Squat.tsx";
 
 const Dashboard: React.FC = () => {
     const { user, logout, getAccessTokenSilently, isAuthenticated } = useAuth0();
@@ -29,26 +30,34 @@ const Dashboard: React.FC = () => {
         <div className="flex h-screen">
             <aside className="w-64 bg-stone-50 text-white p-6 h-screen flex flex-col">
                 <Link to={"/dashboard"}>
-                    <img src="public/repanalyzer-logo-small.png" alt="Logo" className="w-32 mx-auto mb-4" />
+                    <img src="/repanalyzer-logo-small.png" alt="Logo" className="w-32 mx-auto mb-4" />
                 </Link>
 
                 <nav className="flex flex-col flex-1">
                     <ul className="space-y-2">
                         <li>
-                            <a href="#" className="text-stone-950 block p-2 rounded hover:bg-stone-300">Squat</a>
-                        </li><li>
-                            <a href="#" className="text-stone-950 block p-2 rounded hover:bg-stone-300">Bench Press</a>
-                        </li><li>
-                            <a href="#" className="text-stone-950 block p-2 rounded hover:bg-stone-300">Deadlift</a>
+                            <Link to="squat" className="text-stone-950 block p-2 rounded hover:bg-stone-300">Squat</Link>
                         </li>
                         <li>
-                            <a href="#" className="text-stone-950 block p-2 rounded hover:bg-stone-300">Settings</a>
+                            <Link to="bench" className="text-stone-950 block p-2 rounded hover:bg-stone-300">Bench Press</Link>
+                        </li>
+                        <li>
+                            <Link to="deadlift" className="text-stone-950 block p-2 rounded hover:bg-stone-300">Deadlift</Link>
+                        </li>
+                        <li>
+                            <Link to="settings" className="text-stone-950 block p-2 rounded hover:bg-stone-300">Settings</Link>
                         </li>
                     </ul>
                 </nav>
 
                 <button
-                    className="bg-yellow-300 text-stone-950 block p-2 rounded-full hover:bg-yellow-400 mt-auto"
+                    className="mb-3 bg-yellow-300 text-stone-950 block p-2 rounded-full hover:bg-yellow-400 mt-auto"
+                >
+                    Upload Video
+                </button>
+
+                <button
+                    className="bg-red-500 text-stone-950 block p-2 rounded-full hover:bg-red-600 mt-auto"
                     onClick={() => logout({ logoutParams: { returnTo: window.location.origin } })}
                 >
                     Logout
@@ -56,11 +65,8 @@ const Dashboard: React.FC = () => {
             </aside>
 
 
-            <main className="flex-1 p-6 bg-gray-100">
-                <h1 className="text-2xl font-semibold">Hello, {user?.name}</h1>
-                <div className="mt-4 p-6 bg-white rounded shadow-md min-h-[400px]">
-
-                </div>
+            <main className="flex-1 p-6 bg-stone-200">
+                <Outlet/>
             </main>
         </div>
     );
