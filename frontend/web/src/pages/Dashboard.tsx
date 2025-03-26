@@ -1,11 +1,11 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 import apiClient, { setupInterceptors } from '../api/axios';
 import {Link, Outlet} from "react-router-dom";
-import squat from "./Squat.tsx";
 
 const Dashboard: React.FC = () => {
     const { user, logout, getAccessTokenSilently, isAuthenticated } = useAuth0();
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     useEffect(() => {
         if (isAuthenticated && user?.sub) {
@@ -51,6 +51,7 @@ const Dashboard: React.FC = () => {
                 </nav>
 
                 <button
+                    onClick={() => setIsModalOpen(true)}
                     className="mb-3 bg-yellow-300 text-stone-950 block p-2 rounded-full hover:bg-yellow-400 mt-auto"
                 >
                     Upload Video
@@ -68,6 +69,42 @@ const Dashboard: React.FC = () => {
             <main className="flex-1 p-6 bg-stone-200">
                 <Outlet/>
             </main>
+            {isModalOpen && (
+                <div className="fixed inset-0 backdrop-blur-sm bg-black/20 flex items-center justify-center z-50">
+                <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
+                        <h2 className="text-xl font-semibold mb-4">Upload a Video</h2>
+
+                        <div className="mb-4">
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Exercise</label>
+                            <select className="w-full border border-gray-300 rounded px-3 py-2">
+                                <option>Squat</option>
+                                <option>Bench Press</option>
+                                <option>Deadlift</option>
+                            </select>
+                        </div>
+
+                        <div className="mb-4">
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Choose a file</label>
+                            <input type="file" accept="video/*" className="w-full" />
+                        </div>
+
+                        <div className="flex justify-end gap-2">
+                            <button
+                                className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+                                onClick={() => setIsModalOpen(false)}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                className="px-4 py-2 bg-yellow-400 rounded hover:bg-yellow-500"
+                            >
+                                Upload
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
         </div>
     );
 };
