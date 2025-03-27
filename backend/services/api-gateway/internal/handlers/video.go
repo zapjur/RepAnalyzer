@@ -1,17 +1,18 @@
 package handlers
 
 import (
+	"context"
 	"fmt"
-	"io"
+	"github.com/minio/minio-go/v7"
 	"net/http"
-	"os"
-	"path/filepath"
 )
 
-type VideoHandler struct{}
+type VideoHandler struct {
+	minio *minio.Client
+}
 
-func NewVideoHandler() *VideoHandler {
-	return &VideoHandler{}
+func NewVideoHandler(minioClient *minio.Client) *VideoHandler {
+	return &VideoHandler{minio: minioClient}
 }
 
 func (h *VideoHandler) UploadVideo(w http.ResponseWriter, r *http.Request) {
@@ -34,22 +35,16 @@ func (h *VideoHandler) UploadVideo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	uploadDir := "./uploads/" + exercise
-	os.MkdirAll(uploadDir, os.ModePerm)
-	filePath := filepath.Join(uploadDir, handler.Filename)
+	objectName := fmt.Sprintf("%s/%s", exercise, handler.Filename)
+	contentType := handler.Header.Get("Content-Type")
 
-	dst, err := os.Create(filePath)
+	uploadInfo, err := h.minio.PutObject(context.Background(), "videos", objectName, file, handler.Size, minio.PutObjectOptions{
+		ContentType: contentType,
+	})
 	if err != nil {
-		http.Error(w, "Failed to save file", http.StatusInternalServerError)
-		return
-	}
-	defer dst.Close()
-
-	_, err = io.Copy(dst, file)
-	if err != nil {
-		http.Error(w, "Failed to write file", http.StatusInternalServerError)
+		http.Error(w, "Failed to upload to MinIO: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	fmt.Fprintf(w, "Uploaded successfully to %s", filePath)
+	fmt.Fprintf(w, "File uploaded to MinIO: %s (size: %d bytes)", uploadInfo.Key, uploadInfo.Size)
 }

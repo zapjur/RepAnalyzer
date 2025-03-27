@@ -1,6 +1,7 @@
 package main
 
 import (
+	"api-gateway/internal/minio"
 	"log"
 	"net/http"
 
@@ -37,8 +38,11 @@ func main() {
 	}
 	defer grpcClient.Close()
 
+	minioClient := minio.NewMinioClient()
+	minioClient.EnsureBucketExists("videos")
+
 	userHandler := handlers.NewUserHandler(grpcClient)
-	videoHandler := handlers.NewVideoHandler()
+	videoHandler := handlers.NewVideoHandler(minioClient.Minio)
 
 	r := chi.NewRouter()
 
