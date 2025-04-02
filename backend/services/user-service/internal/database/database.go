@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 	"log"
+	"time"
 	"user-service/internal/config"
 
 	"github.com/jackc/pgx/v5"
@@ -11,13 +12,27 @@ import (
 var db *pgx.Conn
 
 func ConnectDB(cfg *config.Config) {
-	conn, err := pgx.Connect(context.Background(), cfg.DatabaseURL)
-	if err != nil {
-		log.Fatalf("Failed to connect to PostgreSQL: %v", err)
+	const (
+		maxRetries    = 5
+		retryInterval = 3 * time.Second
+	)
+
+	var conn *pgx.Conn
+	var err error
+
+	for attempt := 1; attempt <= maxRetries; attempt++ {
+		conn, err = pgx.Connect(context.Background(), cfg.DatabaseURL)
+		if err == nil {
+			log.Println("Connected to PostgreSQL")
+			db = conn
+			return
+		}
+
+		log.Printf("Attempt %d/%d: Failed to connect to PostgreSQL: %v. Retrying in %v...\n", attempt, maxRetries, err, retryInterval)
+		time.Sleep(retryInterval)
 	}
 
-	log.Println("Connected to PostgreSQL")
-	db = conn
+	log.Fatalf("Could not connect to PostgreSQL after %d attempts: %v", maxRetries, err)
 }
 
 func GetDB() *pgx.Conn {
