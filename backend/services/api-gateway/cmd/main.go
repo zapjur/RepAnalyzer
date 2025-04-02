@@ -42,7 +42,7 @@ func main() {
 	minioClient.EnsureBucketExists("videos")
 
 	userHandler := handlers.NewUserHandler(grpcClient)
-	videoHandler := handlers.NewVideoHandler(minioClient.Minio)
+	videoHandler := handlers.NewVideoHandler(minioClient.Minio, grpcClient)
 
 	r := chi.NewRouter()
 
@@ -50,7 +50,7 @@ func main() {
 	r.Use(auth.JwtMiddleware)
 
 	r.Get("/users/{auth0ID}", userHandler.GetUser)
-	r.Post("/upload", videoHandler.UploadVideo)
+	r.Post("/upload/{auth0ID}", videoHandler.UploadVideo)
 
 	log.Printf("API Gateway started on port %s", cfg.HTTPPort)
 	if err = http.ListenAndServe(":"+cfg.HTTPPort, r); err != nil {

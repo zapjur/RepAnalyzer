@@ -21,22 +21,44 @@ func (s *UserServer) GetUser(ctx context.Context, req *pb.GetUserRequest) (*pb.G
 
 	user, err := repository.GetUserByAuth0ID(req.Auth0Id)
 	if err != nil {
-		return nil, err
+		return &pb.GetUserResponse{
+			Success: false,
+			Message: "Database error: " + err.Error(),
+		}, err
 	}
 
 	if user == nil {
 		log.Println("User not found, creating new user...")
 		err := repository.CreateUser(req.Auth0Id, req.Email)
 		if err != nil {
-			return nil, err
+			return &pb.GetUserResponse{
+				Success: false,
+				Message: "Failed to create user: " + err.Error(),
+			}, err
 		}
-		user, _ = repository.GetUserByAuth0ID(req.Auth0Id)
+		log.Println("User created successfully")
 	}
 
 	return &pb.GetUserResponse{
-		Auth0Id: user.Auth0ID,
-		Email:   user.Email,
-		Exists:  true,
+		Success: true,
+		Message: "User exists or was created successfully",
+	}, nil
+}
+
+func (s *UserServer) SaveUploadedVideo(ctx context.Context, req *pb.UploadVideoRequest) (*pb.UploadVideoResponse, error) {
+	log.Printf("Saving video for user: %s", req.Auth0Id)
+
+	err := repository.SaveUploadedVideo(req.Auth0Id, req.Url, req.ExerciseName)
+	if err != nil {
+		return &pb.UploadVideoResponse{
+			Success: false,
+			Message: err.Error(),
+		}, err
+	}
+
+	return &pb.UploadVideoResponse{
+		Success: true,
+		Message: "Video saved successfully",
 	}, nil
 }
 

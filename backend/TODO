@@ -1,1 +1,3 @@
-2. tabela videos z relacja do usera na url do minio
+3. handler dla get video z danego cwiczenia
+4. wyswietlanie video z danych kategorii na froncie
+5. dodac wiecej property do tabeli videos. ciezar, powtorzenia itp. miejsce na przetworzone video

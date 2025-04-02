@@ -10,11 +10,22 @@ message GetUserRequest {
 }
 
 message GetUserResponse {
-  string auth0_id = 1;
-  string email = 2;
-  bool exists = 3;
+  bool success = 1;
+  string message = 2;
+}
+
+message UploadVideoRequest {
+  string url = 1;
+  string exercise_name = 2;
+  string auth0_id = 3;
+}
+
+message UploadVideoResponse {
+  bool success = 1;
+  string message = 2;
 }
 
 service UserService {
   rpc GetUser(GetUserRequest) returns (GetUserResponse);
+  rpc SaveUploadedVideo(UploadVideoRequest) returns (UploadVideoResponse);
 }

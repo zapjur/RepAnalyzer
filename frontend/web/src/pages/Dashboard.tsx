@@ -27,7 +27,7 @@ const Dashboard: React.FC = () => {
         }
     };
 
-    const handleUpload = async () => {
+    const handleUpload = async (auth0Id: string) => {
         if (!selectedFile) return alert("Please select a file first!");
 
         const formData = new FormData();
@@ -35,7 +35,7 @@ const Dashboard: React.FC = () => {
         formData.append("exercise", selectedExercise);
 
         try {
-            const response = await apiClient.post("/upload", formData, {
+            const response = await apiClient.post(`/upload/${auth0Id}`, formData, {
                 headers: {
                     "Content-Type": "multipart/form-data",
                 },
@@ -129,7 +129,7 @@ const Dashboard: React.FC = () => {
                                 Cancel
                             </button>
                             <button
-                                onClick={handleUpload}
+                                onClick={() => handleUpload(user?.sub || "")}
                                 className="px-4 py-2 bg-yellow-400 rounded hover:bg-yellow-500"
                             >
                                 Upload

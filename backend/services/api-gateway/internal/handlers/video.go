@@ -1,18 +1,23 @@
 package handlers
 
 import (
+	"api-gateway/internal/grpc"
+	pb "api-gateway/proto"
 	"context"
 	"fmt"
+	"github.com/go-chi/chi/v5"
 	"github.com/minio/minio-go/v7"
 	"net/http"
+	"strings"
 )
 
 type VideoHandler struct {
-	minio *minio.Client
+	minio      *minio.Client
+	grpcClient *grpc.Client
 }
 
-func NewVideoHandler(minioClient *minio.Client) *VideoHandler {
-	return &VideoHandler{minio: minioClient}
+func NewVideoHandler(minioClient *minio.Client, grpcClient *grpc.Client) *VideoHandler {
+	return &VideoHandler{minio: minioClient, grpcClient: grpcClient}
 }
 
 func (h *VideoHandler) UploadVideo(w http.ResponseWriter, r *http.Request) {
@@ -29,13 +34,24 @@ func (h *VideoHandler) UploadVideo(w http.ResponseWriter, r *http.Request) {
 	}
 	defer file.Close()
 
+	cleanFilename := strings.NewReplacer("(", "_", ")", "_", " ", "_").Replace(handler.Filename)
+
 	exercise := r.FormValue("exercise")
 	if exercise == "" {
 		http.Error(w, "Missing exercise field", http.StatusBadRequest)
 		return
 	}
+	exercise = strings.ReplaceAll(exercise, " ", "_")
 
-	objectName := fmt.Sprintf("%s/%s", exercise, handler.Filename)
+	auth0ID := chi.URLParam(r, "auth0ID")
+	if auth0ID == "" {
+		http.Error(w, "Missing user ID in path", http.StatusBadRequest)
+		return
+	}
+
+	auth0IDEdited := strings.ReplaceAll(auth0ID, "|", "_")
+
+	objectName := fmt.Sprintf("%s/%s/%s", auth0IDEdited, exercise, cleanFilename)
 	contentType := handler.Header.Get("Content-Type")
 
 	uploadInfo, err := h.minio.PutObject(context.Background(), "videos", objectName, file, handler.Size, minio.PutObjectOptions{
@@ -47,4 +63,14 @@ func (h *VideoHandler) UploadVideo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	fmt.Fprintf(w, "File uploaded to MinIO: %s (size: %d bytes)", uploadInfo.Key, uploadInfo.Size)
+
+	baseURL := "http://localhost:9000"
+	bucketName := "videos"
+	objectURL := fmt.Sprintf("%s/%s/%s", baseURL, bucketName, uploadInfo.Key)
+
+	h.grpcClient.UserService.SaveUploadedVideo(context.Background(), &pb.UploadVideoRequest{
+		Auth0Id:      auth0ID,
+		Url:          objectURL,
+		ExerciseName: exercise,
+	})
 }
