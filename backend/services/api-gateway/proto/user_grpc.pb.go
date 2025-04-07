@@ -19,8 +19,9 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	UserService_GetUser_FullMethodName           = "/user.UserService/GetUser"
-	UserService_SaveUploadedVideo_FullMethodName = "/user.UserService/SaveUploadedVideo"
+	UserService_GetUser_FullMethodName                 = "/user.UserService/GetUser"
+	UserService_SaveUploadedVideo_FullMethodName       = "/user.UserService/SaveUploadedVideo"
+	UserService_GetUserVideosByExercise_FullMethodName = "/user.UserService/GetUserVideosByExercise"
 )
 
 // UserServiceClient is the client API for UserService service.
@@ -29,6 +30,7 @@ const (
 type UserServiceClient interface {
 	GetUser(ctx context.Context, in *GetUserRequest, opts ...grpc.CallOption) (*GetUserResponse, error)
 	SaveUploadedVideo(ctx context.Context, in *UploadVideoRequest, opts ...grpc.CallOption) (*UploadVideoResponse, error)
+	GetUserVideosByExercise(ctx context.Context, in *GetUserVideosByExerciseRequest, opts ...grpc.CallOption) (*GetUserVideosByExerciseResponse, error)
 }
 
 type userServiceClient struct {
@@ -59,12 +61,23 @@ func (c *userServiceClient) SaveUploadedVideo(ctx context.Context, in *UploadVid
 	return out, nil
 }
 
+func (c *userServiceClient) GetUserVideosByExercise(ctx context.Context, in *GetUserVideosByExerciseRequest, opts ...grpc.CallOption) (*GetUserVideosByExerciseResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetUserVideosByExerciseResponse)
+	err := c.cc.Invoke(ctx, UserService_GetUserVideosByExercise_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UserServiceServer is the server API for UserService service.
 // All implementations must embed UnimplementedUserServiceServer
 // for forward compatibility.
 type UserServiceServer interface {
 	GetUser(context.Context, *GetUserRequest) (*GetUserResponse, error)
 	SaveUploadedVideo(context.Context, *UploadVideoRequest) (*UploadVideoResponse, error)
+	GetUserVideosByExercise(context.Context, *GetUserVideosByExerciseRequest) (*GetUserVideosByExerciseResponse, error)
 	mustEmbedUnimplementedUserServiceServer()
 }
 
@@ -80,6 +93,9 @@ func (UnimplementedUserServiceServer) GetUser(context.Context, *GetUserRequest) 
 }
 func (UnimplementedUserServiceServer) SaveUploadedVideo(context.Context, *UploadVideoRequest) (*UploadVideoResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SaveUploadedVideo not implemented")
+}
+func (UnimplementedUserServiceServer) GetUserVideosByExercise(context.Context, *GetUserVideosByExerciseRequest) (*GetUserVideosByExerciseResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetUserVideosByExercise not implemented")
 }
 func (UnimplementedUserServiceServer) mustEmbedUnimplementedUserServiceServer() {}
 func (UnimplementedUserServiceServer) testEmbeddedByValue()                     {}
@@ -138,6 +154,24 @@ func _UserService_SaveUploadedVideo_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserService_GetUserVideosByExercise_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetUserVideosByExerciseRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).GetUserVideosByExercise(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_GetUserVideosByExercise_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).GetUserVideosByExercise(ctx, req.(*GetUserVideosByExerciseRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // UserService_ServiceDesc is the grpc.ServiceDesc for UserService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -152,6 +186,10 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SaveUploadedVideo",
 			Handler:    _UserService_SaveUploadedVideo_Handler,
+		},
+		{
+			MethodName: "GetUserVideosByExercise",
+			Handler:    _UserService_GetUserVideosByExercise_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -25,7 +25,26 @@ message UploadVideoResponse {
   string message = 2;
 }
 
+message GetUserVideosByExerciseRequest {
+  string auth0_id = 1;
+  string exercise_name = 2;
+}
+
+message VideoInfo {
+  string url = 1;
+  string exercise_name = 2;
+  string auth0_id = 3;
+  string created_at = 4;
+}
+
+message GetUserVideosByExerciseResponse {
+  repeated VideoInfo videos = 1;
+  bool success = 2;
+  string message = 3;
+}
+
 service UserService {
   rpc GetUser(GetUserRequest) returns (GetUserResponse);
   rpc SaveUploadedVideo(UploadVideoRequest) returns (UploadVideoResponse);
+  rpc GetUserVideosByExercise(GetUserVideosByExerciseRequest) returns (GetUserVideosByExerciseResponse);
 }

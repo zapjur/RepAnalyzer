@@ -74,3 +74,7 @@ func (h *VideoHandler) UploadVideo(w http.ResponseWriter, r *http.Request) {
 		ExerciseName: exercise,
 	})
 }
+
+func (h *VideoHandler) GetVideosByExercise(w http.ResponseWriter, r *http.Request) {
+
+}

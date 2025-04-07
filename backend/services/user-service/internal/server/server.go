@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"net"
+	"time"
 	"user-service/internal/config"
 	"user-service/internal/repository"
 
@@ -14,6 +15,11 @@ import (
 
 type UserServer struct {
 	pb.UnimplementedUserServiceServer
+}
+
+type Video struct {
+	URL       string
+	CreatedAt time.Time
 }
 
 func (s *UserServer) GetUser(ctx context.Context, req *pb.GetUserRequest) (*pb.GetUserResponse, error) {
@@ -76,4 +82,31 @@ func StartGRPCServer(cfg *config.Config) {
 	if err := grpcServer.Serve(listener); err != nil {
 		log.Fatalf("Failed to serve: %v", err)
 	}
+}
+
+func (s *UserServer) GetUserVideosByExercise(ctx context.Context, req *pb.GetUserVideosByExerciseRequest) (*pb.GetUserVideosByExerciseResponse, error) {
+	log.Printf("Getting videos for user: %s and exercise: %s", req.Auth0Id, req.ExerciseName)
+
+	videos, err := repository.GetUserVideosByExercise(req.Auth0Id, req.ExerciseName)
+	if err != nil {
+		return &pb.GetUserVideosByExerciseResponse{
+			Success: false,
+			Message: "Database error: " + err.Error(),
+		}, err
+	}
+
+	var videoInfos []*pb.VideoInfo
+	for _, v := range videos {
+		videoInfos = append(videoInfos, &pb.VideoInfo{
+			Url:          v.URL,
+			ExerciseName: req.ExerciseName,
+			Auth0Id:      req.Auth0Id,
+			CreatedAt:    v.CreatedAt.Format(time.RFC3339),
+		})
+	}
+	return &pb.GetUserVideosByExerciseResponse{
+		Success: true,
+		Message: "Videos retrieved successfully",
+		Videos:  videoInfos,
+	}, nil
 }

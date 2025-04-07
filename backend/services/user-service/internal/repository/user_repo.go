@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"fmt"
+	"time"
 	"user-service/internal/database"
 
 	"github.com/jackc/pgx/v5"
@@ -12,6 +13,11 @@ type User struct {
 	ID      int
 	Auth0ID string
 	Email   string
+}
+
+type Video struct {
+	URL       string
+	CreatedAt time.Time
 }
 
 func GetUserByAuth0ID(auth0ID string) (*User, error) {
@@ -49,4 +55,36 @@ func SaveUploadedVideo(auth0ID, url, exercise string) error {
 	`, userID, url, exercise)
 
 	return err
+}
+
+func GetUserVideosByExercise(auth0ID, exercise string) ([]Video, error) {
+	db := database.GetDB()
+
+	var userID int
+	err := db.QueryRow(context.Background(), "SELECT id FROM users WHERE auth0_id = $1", auth0ID).Scan(&userID)
+	if err != nil {
+		return nil, fmt.Errorf("could not find user with auth0_id %s: %w", auth0ID, err)
+	}
+
+	rows, err := db.Query(context.Background(), `
+		SELECT url
+		FROM videos
+		WHERE user_id = $1 AND exercise_name = $2
+		ORDER BY created_at DESC
+	`, userID, exercise)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var videos []Video
+	for rows.Next() {
+		var v Video
+		if err = rows.Scan(&v.URL, &v.CreatedAt); err != nil {
+			return nil, err
+		}
+		videos = append(videos, v)
+	}
+
+	return videos, nil
 }
