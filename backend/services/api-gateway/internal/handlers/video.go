@@ -4,6 +4,7 @@ import (
 	"api-gateway/internal/grpc"
 	pb "api-gateway/proto"
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/go-chi/chi/v5"
 	"github.com/minio/minio-go/v7"
@@ -76,5 +77,32 @@ func (h *VideoHandler) UploadVideo(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *VideoHandler) GetVideosByExercise(w http.ResponseWriter, r *http.Request) {
+	auth0ID := chi.URLParam(r, "auth0ID")
+	if auth0ID == "" {
+		http.Error(w, "Missing user ID in path", http.StatusBadRequest)
+		return
+	}
 
+	exercise := r.URL.Query().Get("exercise")
+	if exercise == "" {
+		http.Error(w, "Missing exercise query parameter", http.StatusBadRequest)
+		return
+	}
+
+	response, err := h.grpcClient.UserService.GetUserVideosByExercise(context.Background(), &pb.GetUserVideosByExerciseRequest{
+		Auth0Id:      auth0ID,
+		ExerciseName: exercise,
+	})
+	if err != nil {
+		http.Error(w, "Failed to get videos: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if !response.Success {
+		http.Error(w, "Failed to get videos: "+response.Message, http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(response.Videos)
 }
