@@ -111,8 +111,6 @@ func JwtMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		log.Println("Received Authorization header:", authHeader)
-
 		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (any, error) {
 			if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
 				return nil, errors.New("invalid token signature")

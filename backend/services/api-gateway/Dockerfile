@@ -6,7 +6,12 @@ COPY . .
 RUN go mod tidy
 RUN go build -o api-gateway ./cmd
 
-FROM alpine:latest
+FROM ubuntu:22.04
+
+RUN apt-get update && \
+    apt-get install -y ffmpeg ca-certificates && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 COPY --from=build /app/api-gateway /app/api-gateway
 

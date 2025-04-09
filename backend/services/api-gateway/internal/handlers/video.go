@@ -2,13 +2,17 @@ package handlers
 
 import (
 	"api-gateway/internal/grpc"
+	"api-gateway/internal/utils"
 	pb "api-gateway/proto"
 	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/go-chi/chi/v5"
 	"github.com/minio/minio-go/v7"
+	"io"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -52,11 +56,42 @@ func (h *VideoHandler) UploadVideo(w http.ResponseWriter, r *http.Request) {
 
 	auth0IDEdited := strings.ReplaceAll(auth0ID, "|", "_")
 
-	objectName := fmt.Sprintf("%s/%s/%s", auth0IDEdited, exercise, cleanFilename)
-	contentType := handler.Header.Get("Content-Type")
+	tmpInput, err := os.CreateTemp("", "upload-*"+filepath.Ext(cleanFilename))
+	if err != nil {
+		http.Error(w, "Failed to create temp file", http.StatusInternalServerError)
+		return
+	}
+	defer os.Remove(tmpInput.Name())
+	defer tmpInput.Close()
 
-	uploadInfo, err := h.minio.PutObject(context.Background(), "videos", objectName, file, handler.Size, minio.PutObjectOptions{
-		ContentType: contentType,
+	file.Seek(0, io.SeekStart)
+	_, err = io.Copy(tmpInput, file)
+	if err != nil {
+		http.Error(w, "Failed to write uploaded file", http.StatusInternalServerError)
+		return
+	}
+
+	convertedPath, err := utils.ConvertToMP4(tmpInput.Name())
+	if err != nil {
+		http.Error(w, "Conversion failed: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer os.Remove(convertedPath)
+
+	convertedFile, err := os.Open(convertedPath)
+	if err != nil {
+		http.Error(w, "Failed to open converted file", http.StatusInternalServerError)
+		return
+	}
+	defer convertedFile.Close()
+
+	fileInfo, _ := convertedFile.Stat()
+
+	baseFilename := strings.TrimSuffix(cleanFilename, filepath.Ext(cleanFilename))
+	objectName := fmt.Sprintf("%s/%s/%s.mp4", auth0IDEdited, exercise, baseFilename)
+
+	uploadInfo, err := h.minio.PutObject(context.Background(), "videos", objectName, convertedFile, fileInfo.Size(), minio.PutObjectOptions{
+		ContentType: "video/mp4",
 	})
 	if err != nil {
 		http.Error(w, "Failed to upload to MinIO: "+err.Error(), http.StatusInternalServerError)
