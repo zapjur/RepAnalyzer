@@ -2,14 +2,13 @@ package database
 
 import (
 	"context"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"log"
 	"time"
 	"user-service/internal/config"
-
-	"github.com/jackc/pgx/v5"
 )
 
-var db *pgx.Conn
+var db *pgxpool.Pool
 
 func ConnectDB(cfg *config.Config) {
 	const (
@@ -17,14 +16,14 @@ func ConnectDB(cfg *config.Config) {
 		retryInterval = 3 * time.Second
 	)
 
-	var conn *pgx.Conn
+	var pool *pgxpool.Pool
 	var err error
 
 	for attempt := 1; attempt <= maxRetries; attempt++ {
-		conn, err = pgx.Connect(context.Background(), cfg.DatabaseURL)
+		pool, err = pgxpool.New(context.Background(), cfg.DatabaseURL)
 		if err == nil {
 			log.Println("Connected to PostgreSQL")
-			db = conn
+			db = pool
 			return
 		}
 
@@ -35,7 +34,7 @@ func ConnectDB(cfg *config.Config) {
 	log.Fatalf("Could not connect to PostgreSQL after %d attempts: %v", maxRetries, err)
 }
 
-func GetDB() *pgx.Conn {
+func GetDB() *pgxpool.Pool {
 	if db == nil {
 		log.Fatal("Database connection is not initialized!")
 	}
@@ -44,7 +43,7 @@ func GetDB() *pgx.Conn {
 
 func CloseDB() {
 	if db != nil {
-		db.Close(context.Background())
+		db.Close()
 		log.Println("Database connection closed.")
 	}
 }

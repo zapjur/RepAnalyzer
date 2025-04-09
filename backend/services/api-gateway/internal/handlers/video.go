@@ -83,9 +83,9 @@ func (h *VideoHandler) GetVideosByExercise(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	exercise := r.URL.Query().Get("exercise")
+	exercise := chi.URLParam(r, "exercise")
 	if exercise == "" {
-		http.Error(w, "Missing exercise query parameter", http.StatusBadRequest)
+		http.Error(w, "Missing exercise path parameter", http.StatusBadRequest)
 		return
 	}
 
