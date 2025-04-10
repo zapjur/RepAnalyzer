@@ -3,7 +3,21 @@
 
 ### dotenv ###
 .env
-
+**/datasets/train/images/
+**/datasets/valid/images/
+**/datasets/train/labels/
+**/datasets/valid/labels/
+**/runs/
+*.pt
+*.cache
+*.mp4
+*.mov
+**/videos_mp4/
+**/videos_to_test_mp4/
+output_barpath.mp4
+**/yolovenv/
+**/__pycache__/
+.DS_Store
 ### GoLand ###
 # Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm, CLion, Android Studio, WebStorm and Rider
 # Reference: https://intellij-support.jetbrains.com/hc/en-us/articles/206544839
