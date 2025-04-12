@@ -11,7 +11,7 @@ const Squat: React.FC = () => {
             fetchVideos("Squat", user.sub);
         }
 
-    }, []);
+    }, [user?.sub]);
 
     const squatVideos = videos["Squat"] || [];
 

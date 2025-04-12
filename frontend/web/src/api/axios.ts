@@ -1,5 +1,4 @@
-import axios, { AxiosRequestConfig } from 'axios';
-import { GetTokenSilentlyOptions } from '@auth0/auth0-react';
+import axios, { InternalAxiosRequestConfig } from 'axios';
 
 const apiClient = axios.create({
     baseURL: 'http://localhost:8080',
@@ -8,23 +7,15 @@ const apiClient = axios.create({
     },
 });
 
-export const setupInterceptors = (
-    getAccessTokenSilently: (options?: GetTokenSilentlyOptions) => Promise<string>,
-) => {
-    apiClient.interceptors.request.use(
-        async (config: AxiosRequestConfig) => {
-            try {
-                const token = await getAccessTokenSilently();
-                if (token && config.headers) {
-                    config.headers.Authorization = `Bearer ${token}`;
-                }
-            } catch (error) {
-                console.error("Failed to get access token", error);
-            }
-            return config;
-        },
-        (error) => Promise.reject(error),
-    );
-};
+apiClient.interceptors.request.use(
+    (config: InternalAxiosRequestConfig) => {
+        const token = localStorage.getItem('access_token');
+        if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
+        }
+        return config;
+    },
+    (error) => Promise.reject(error)
+);
 
 export default apiClient;

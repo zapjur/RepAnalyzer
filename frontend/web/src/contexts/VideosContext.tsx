@@ -28,7 +28,6 @@ export const VideosProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
     const fetchVideos = async (exercise: string, auth0Id: string) => {
         console.log(`Fetching videos for ${exercise}...`);
-        if (videos[exercise]) return;
 
         try {
             const encodedExercise = encodeURIComponent(exercise);

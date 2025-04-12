@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
-import apiClient, { setupInterceptors } from '../api/axios';
 import {Link, Outlet} from "react-router-dom";
 
 const Dashboard: React.FC = () => {
@@ -11,7 +10,17 @@ const Dashboard: React.FC = () => {
 
     useEffect(() => {
         if (isAuthenticated && user?.sub) {
-            setupInterceptors(getAccessTokenSilently);
+            const init = async () => {
+                if (isAuthenticated) {
+                    try {
+                        const token = await getAccessTokenSilently();
+                        localStorage.setItem('access_token', token);
+                    } catch (err) {
+                        console.error("Error getting access token", err);
+                    }
+                }
+            };
+            init();
             fetchUser(user.sub);
             console.log("Is Authenticated:", isAuthenticated);
             console.log("User:", user);
