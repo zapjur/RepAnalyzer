@@ -23,14 +23,23 @@ const Squat: React.FC = () => {
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {squatVideos.map((video, idx) => (
-                        <video key={idx} controls className="w-full">
-                            <source src={video.url} type="video/mp4" />
-                            Your browser does not support the video tag.
-                        </video>
+                        <div key={idx} className="flex flex-col items-center">
+                            <video controls className="w-full mb-2">
+                                <source src={video.url} type="video/mp4" />
+                                Your browser does not support the video tag.
+                            </video>
+                            <button
+                                className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition"
+                                onClick={() => window.location.href = `/analysis/${video.id}`}
+                            >
+                                View Analysis
+                            </button>
+                        </div>
                     ))}
                 </div>
             )}
         </div>
+
     );
 };
 

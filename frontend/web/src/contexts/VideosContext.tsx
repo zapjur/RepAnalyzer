@@ -5,6 +5,7 @@ type Video = {
     url: string;
     exercise_name: string;
     uploaded_at: string;
+    id: string;
 };
 
 type VideosMap = Record<string, Video[]>;
