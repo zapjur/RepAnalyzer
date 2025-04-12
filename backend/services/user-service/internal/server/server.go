@@ -20,6 +20,7 @@ type UserServer struct {
 type Video struct {
 	URL       string
 	CreatedAt time.Time
+	ID        string
 }
 
 func (s *UserServer) GetUser(ctx context.Context, req *pb.GetUserRequest) (*pb.GetUserResponse, error) {
@@ -98,6 +99,7 @@ func (s *UserServer) GetUserVideosByExercise(ctx context.Context, req *pb.GetUse
 	var videoInfos []*pb.VideoInfo
 	for _, v := range videos {
 		videoInfos = append(videoInfos, &pb.VideoInfo{
+			Id:           v.ID,
 			Url:          v.URL,
 			ExerciseName: req.ExerciseName,
 			Auth0Id:      req.Auth0Id,

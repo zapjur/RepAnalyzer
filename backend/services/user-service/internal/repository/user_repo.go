@@ -18,6 +18,7 @@ type User struct {
 type Video struct {
 	URL       string
 	CreatedAt time.Time
+	ID        string
 }
 
 func GetUserByAuth0ID(auth0ID string) (*User, error) {
@@ -67,7 +68,7 @@ func GetUserVideosByExercise(auth0ID, exercise string) ([]Video, error) {
 	}
 
 	rows, err := db.Query(context.Background(), `
-		SELECT url, created_at
+		SELECT url, created_at, id
 		FROM videos
 		WHERE user_id = $1 AND exercise_name = $2
 		ORDER BY created_at DESC
@@ -80,7 +81,7 @@ func GetUserVideosByExercise(auth0ID, exercise string) ([]Video, error) {
 	var videos []Video
 	for rows.Next() {
 		var v Video
-		if err = rows.Scan(&v.URL, &v.CreatedAt); err != nil {
+		if err = rows.Scan(&v.URL, &v.CreatedAt, &v.ID); err != nil {
 			return nil, err
 		}
 		videos = append(videos, v)

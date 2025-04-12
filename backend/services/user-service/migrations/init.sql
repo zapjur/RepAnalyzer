@@ -16,3 +16,13 @@ CREATE TABLE IF NOT EXISTS videos (
     );
 
 CREATE INDEX IF NOT EXISTS idx_videos_user_id ON videos(user_id);
+
+CREATE TABLE IF NOT EXISTS video_analysis (
+    id SERIAL PRIMARY KEY,
+    video_id INTEGER NOT NULL REFERENCES videos(id) ON DELETE CASCADE,
+    type TEXT NOT NULL,
+    result_url TEXT,
+    metadata JSONB,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+
