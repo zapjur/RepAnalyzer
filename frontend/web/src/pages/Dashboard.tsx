@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 import {Link, Outlet} from "react-router-dom";
+import apiClient from "../api/axios.ts";
 
 const Dashboard: React.FC = () => {
     const { user, logout, getAccessTokenSilently, isAuthenticated } = useAuth0();

@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"api-gateway/internal/grpc"
-	pb "api-gateway/proto"
+	userPb "api-gateway/proto/user"
 
 	"github.com/golang-jwt/jwt/v4"
 )
@@ -45,7 +45,7 @@ func (h *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp, err := h.client.UserService.GetUser(r.Context(), &pb.GetUserRequest{
+	resp, err := h.client.UserService.GetUser(r.Context(), &userPb.GetUserRequest{
 		Auth0Id: auth0ID,
 		Email:   email,
 	})

@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package analysis;
+
+option go_package = "./proto;user";
+
+message VideoToAnalyzeRequest {
+  string url = 1;
+  string exercise_name = 2;
+  string auth0_id = 3;
+  string video_id = 4;
+}
+
+message VideoToAnalyzeResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+service Orchestrator {
+  rpc AnalyzeVideo(VideoToAnalyzeRequest) returns (VideoToAnalyzeResponse);
+}
