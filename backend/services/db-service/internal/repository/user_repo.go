@@ -18,7 +18,7 @@ type User struct {
 type Video struct {
 	URL       string
 	CreatedAt time.Time
-	ID        string
+	ID        int64
 }
 
 func GetUserByAuth0ID(auth0ID string) (*User, error) {

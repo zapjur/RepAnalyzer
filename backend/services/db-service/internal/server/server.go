@@ -20,7 +20,7 @@ type DBServer struct {
 type Video struct {
 	URL       string
 	CreatedAt time.Time
-	ID        string
+	ID        int64
 }
 
 func (s *DBServer) GetUser(ctx context.Context, req *pb.GetUserRequest) (*pb.GetUserResponse, error) {

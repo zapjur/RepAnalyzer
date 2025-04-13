@@ -36,7 +36,7 @@ message VideoInfo {
   string exercise_name = 2;
   string auth0_id = 3;
   string created_at = 4;
-  string id = 5;
+  int64 id = 5;
 }
 
 message GetUserVideosByExerciseResponse {

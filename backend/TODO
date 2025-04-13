@@ -1,5 +1,4 @@
 - dodac wiecej property do tabeli videos. ciezar, powtorzenia itp.
-- refactor zmienic id z string na int64 w db.proto
 - grpc do orchestratora
 - rabbitmq w orchestrator
 - odbieranie taskow z rabbitmq w barpath
