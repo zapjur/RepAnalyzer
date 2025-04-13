@@ -32,17 +32,17 @@ func main() {
 	cfg := config.Load()
 	auth.SetAuth0Domain(cfg.Auth0Domain)
 
-	grpcClient, err := grpc.NewClient(cfg.UserServiceAddress)
+	grpcDBClient, err := grpc.NewClient(cfg.DBServiceAddress)
 	if err != nil {
 		log.Fatalf("failed to setup gRPC client: %v", err)
 	}
-	defer grpcClient.Close()
+	defer grpcDBClient.Close()
 
 	minioClient := minio.NewMinioClient()
 	minioClient.EnsureBucketExists("videos")
 
-	userHandler := handlers.NewUserHandler(grpcClient)
-	videoHandler := handlers.NewVideoHandler(minioClient.Minio, grpcClient)
+	userHandler := handlers.NewUserHandler(grpcDBClient)
+	videoHandler := handlers.NewVideoHandler(minioClient.Minio, grpcDBClient)
 
 	r := chi.NewRouter()
 

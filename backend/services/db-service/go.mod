@@ -1,4 +1,4 @@
-module user-service
+module db-service
 
 go 1.24.1
 

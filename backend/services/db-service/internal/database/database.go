@@ -2,10 +2,10 @@ package database
 
 import (
 	"context"
+	"db-service/internal/config"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"log"
 	"time"
-	"user-service/internal/config"
 )
 
 var db *pgxpool.Pool

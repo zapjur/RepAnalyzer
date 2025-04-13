@@ -4,11 +4,11 @@ WORKDIR /app
 COPY . .
 
 RUN go mod tidy
-RUN go build -o user-service ./cmd
+RUN go build -o db-service ./cmd
 
 FROM alpine:latest
 WORKDIR /app
-COPY --from=build /app/user-service /app/user-service
+COPY --from=build /app/db-service /app/db-service
 
 EXPOSE 50051
-CMD ["/app/user-service"]
+CMD ["/app/db-service"]

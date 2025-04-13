@@ -1,15 +1,15 @@
 version: "3.9"
 
 services:
-  user-service:
-    build: ./services/user-service
-    container_name: user-service
+  db-service:
+    build: services/db-service
+    container_name: db-service
     ports:
       - "50051:50051"
 
   postgres:
     image: postgres:17
-    container_name: users-db
+    container_name: database
     environment:
         POSTGRES_USER: ${POSTGRES_USER}
         POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -40,6 +40,23 @@ services:
     volumes:
       - minio-data:/data
     command: server /data --console-address ":9001"
+
+  rabbitmq:
+    image: rabbitmq:management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+      RABBITMQ_HEARTBEAT: 900
+
+  redis:
+    image: redis
+    container_name: redis
+    ports:
+      - "6379:6379"
 
 volumes:
     postgres-data:

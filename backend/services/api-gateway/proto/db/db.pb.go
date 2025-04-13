@@ -2,9 +2,9 @@
 // versions:
 // 	protoc-gen-go v1.36.5
 // 	protoc        v5.29.3
-// source: user/user.proto
+// source: proto/db/db.proto
 
-package user
+package db
 
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
@@ -31,7 +31,7 @@ type GetUserRequest struct {
 
 func (x *GetUserRequest) Reset() {
 	*x = GetUserRequest{}
-	mi := &file_user_user_proto_msgTypes[0]
+	mi := &file_proto_db_db_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -43,7 +43,7 @@ func (x *GetUserRequest) String() string {
 func (*GetUserRequest) ProtoMessage() {}
 
 func (x *GetUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_user_user_proto_msgTypes[0]
+	mi := &file_proto_db_db_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -56,7 +56,7 @@ func (x *GetUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetUserRequest.ProtoReflect.Descriptor instead.
 func (*GetUserRequest) Descriptor() ([]byte, []int) {
-	return file_user_user_proto_rawDescGZIP(), []int{0}
+	return file_proto_db_db_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *GetUserRequest) GetAuth0Id() string {
@@ -83,7 +83,7 @@ type GetUserResponse struct {
 
 func (x *GetUserResponse) Reset() {
 	*x = GetUserResponse{}
-	mi := &file_user_user_proto_msgTypes[1]
+	mi := &file_proto_db_db_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -95,7 +95,7 @@ func (x *GetUserResponse) String() string {
 func (*GetUserResponse) ProtoMessage() {}
 
 func (x *GetUserResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_user_user_proto_msgTypes[1]
+	mi := &file_proto_db_db_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -108,7 +108,7 @@ func (x *GetUserResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetUserResponse.ProtoReflect.Descriptor instead.
 func (*GetUserResponse) Descriptor() ([]byte, []int) {
-	return file_user_user_proto_rawDescGZIP(), []int{1}
+	return file_proto_db_db_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *GetUserResponse) GetSuccess() bool {
@@ -136,7 +136,7 @@ type UploadVideoRequest struct {
 
 func (x *UploadVideoRequest) Reset() {
 	*x = UploadVideoRequest{}
-	mi := &file_user_user_proto_msgTypes[2]
+	mi := &file_proto_db_db_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -148,7 +148,7 @@ func (x *UploadVideoRequest) String() string {
 func (*UploadVideoRequest) ProtoMessage() {}
 
 func (x *UploadVideoRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_user_user_proto_msgTypes[2]
+	mi := &file_proto_db_db_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -161,7 +161,7 @@ func (x *UploadVideoRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UploadVideoRequest.ProtoReflect.Descriptor instead.
 func (*UploadVideoRequest) Descriptor() ([]byte, []int) {
-	return file_user_user_proto_rawDescGZIP(), []int{2}
+	return file_proto_db_db_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *UploadVideoRequest) GetUrl() string {
@@ -195,7 +195,7 @@ type UploadVideoResponse struct {
 
 func (x *UploadVideoResponse) Reset() {
 	*x = UploadVideoResponse{}
-	mi := &file_user_user_proto_msgTypes[3]
+	mi := &file_proto_db_db_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -207,7 +207,7 @@ func (x *UploadVideoResponse) String() string {
 func (*UploadVideoResponse) ProtoMessage() {}
 
 func (x *UploadVideoResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_user_user_proto_msgTypes[3]
+	mi := &file_proto_db_db_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -220,7 +220,7 @@ func (x *UploadVideoResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UploadVideoResponse.ProtoReflect.Descriptor instead.
 func (*UploadVideoResponse) Descriptor() ([]byte, []int) {
-	return file_user_user_proto_rawDescGZIP(), []int{3}
+	return file_proto_db_db_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *UploadVideoResponse) GetSuccess() bool {
@@ -247,7 +247,7 @@ type GetUserVideosByExerciseRequest struct {
 
 func (x *GetUserVideosByExerciseRequest) Reset() {
 	*x = GetUserVideosByExerciseRequest{}
-	mi := &file_user_user_proto_msgTypes[4]
+	mi := &file_proto_db_db_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -259,7 +259,7 @@ func (x *GetUserVideosByExerciseRequest) String() string {
 func (*GetUserVideosByExerciseRequest) ProtoMessage() {}
 
 func (x *GetUserVideosByExerciseRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_user_user_proto_msgTypes[4]
+	mi := &file_proto_db_db_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -272,7 +272,7 @@ func (x *GetUserVideosByExerciseRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetUserVideosByExerciseRequest.ProtoReflect.Descriptor instead.
 func (*GetUserVideosByExerciseRequest) Descriptor() ([]byte, []int) {
-	return file_user_user_proto_rawDescGZIP(), []int{4}
+	return file_proto_db_db_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *GetUserVideosByExerciseRequest) GetAuth0Id() string {
@@ -302,7 +302,7 @@ type VideoInfo struct {
 
 func (x *VideoInfo) Reset() {
 	*x = VideoInfo{}
-	mi := &file_user_user_proto_msgTypes[5]
+	mi := &file_proto_db_db_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -314,7 +314,7 @@ func (x *VideoInfo) String() string {
 func (*VideoInfo) ProtoMessage() {}
 
 func (x *VideoInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_user_user_proto_msgTypes[5]
+	mi := &file_proto_db_db_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -327,7 +327,7 @@ func (x *VideoInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use VideoInfo.ProtoReflect.Descriptor instead.
 func (*VideoInfo) Descriptor() ([]byte, []int) {
-	return file_user_user_proto_rawDescGZIP(), []int{5}
+	return file_proto_db_db_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *VideoInfo) GetUrl() string {
@@ -376,7 +376,7 @@ type GetUserVideosByExerciseResponse struct {
 
 func (x *GetUserVideosByExerciseResponse) Reset() {
 	*x = GetUserVideosByExerciseResponse{}
-	mi := &file_user_user_proto_msgTypes[6]
+	mi := &file_proto_db_db_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -388,7 +388,7 @@ func (x *GetUserVideosByExerciseResponse) String() string {
 func (*GetUserVideosByExerciseResponse) ProtoMessage() {}
 
 func (x *GetUserVideosByExerciseResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_user_user_proto_msgTypes[6]
+	mi := &file_proto_db_db_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -401,7 +401,7 @@ func (x *GetUserVideosByExerciseResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetUserVideosByExerciseResponse.ProtoReflect.Descriptor instead.
 func (*GetUserVideosByExerciseResponse) Descriptor() ([]byte, []int) {
-	return file_user_user_proto_rawDescGZIP(), []int{6}
+	return file_proto_db_db_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *GetUserVideosByExerciseResponse) GetVideos() []*VideoInfo {
@@ -425,11 +425,11 @@ func (x *GetUserVideosByExerciseResponse) GetMessage() string {
 	return ""
 }
 
-var File_user_user_proto protoreflect.FileDescriptor
+var File_proto_db_db_proto protoreflect.FileDescriptor
 
-var file_user_user_proto_rawDesc = string([]byte{
-	0x0a, 0x0f, 0x75, 0x73, 0x65, 0x72, 0x2f, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x70, 0x72, 0x6f, 0x74,
-	0x6f, 0x12, 0x04, 0x75, 0x73, 0x65, 0x72, 0x22, 0x41, 0x0a, 0x0e, 0x47, 0x65, 0x74, 0x55, 0x73,
+var file_proto_db_db_proto_rawDesc = string([]byte{
+	0x0a, 0x11, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2f, 0x64, 0x62, 0x2f, 0x64, 0x62, 0x2e, 0x70, 0x72,
+	0x6f, 0x74, 0x6f, 0x12, 0x02, 0x64, 0x62, 0x22, 0x41, 0x0a, 0x0e, 0x47, 0x65, 0x74, 0x55, 0x73,
 	0x65, 0x72, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x19, 0x0a, 0x08, 0x61, 0x75, 0x74,
 	0x68, 0x30, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x61, 0x75, 0x74,
 	0x68, 0x30, 0x49, 0x64, 0x12, 0x14, 0x0a, 0x05, 0x65, 0x6d, 0x61, 0x69, 0x6c, 0x18, 0x02, 0x20,
@@ -464,64 +464,63 @@ var file_user_user_proto_rawDesc = string([]byte{
 	0x75, 0x74, 0x68, 0x30, 0x49, 0x64, 0x12, 0x1d, 0x0a, 0x0a, 0x63, 0x72, 0x65, 0x61, 0x74, 0x65,
 	0x64, 0x5f, 0x61, 0x74, 0x18, 0x04, 0x20, 0x01, 0x28, 0x09, 0x52, 0x09, 0x63, 0x72, 0x65, 0x61,
 	0x74, 0x65, 0x64, 0x41, 0x74, 0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x05, 0x20, 0x01, 0x28,
-	0x09, 0x52, 0x02, 0x69, 0x64, 0x22, 0x7e, 0x0a, 0x1f, 0x47, 0x65, 0x74, 0x55, 0x73, 0x65, 0x72,
+	0x09, 0x52, 0x02, 0x69, 0x64, 0x22, 0x7c, 0x0a, 0x1f, 0x47, 0x65, 0x74, 0x55, 0x73, 0x65, 0x72,
 	0x56, 0x69, 0x64, 0x65, 0x6f, 0x73, 0x42, 0x79, 0x45, 0x78, 0x65, 0x72, 0x63, 0x69, 0x73, 0x65,
-	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x27, 0x0a, 0x06, 0x76, 0x69, 0x64, 0x65,
-	0x6f, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x0f, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e,
-	0x56, 0x69, 0x64, 0x65, 0x6f, 0x49, 0x6e, 0x66, 0x6f, 0x52, 0x06, 0x76, 0x69, 0x64, 0x65, 0x6f,
-	0x73, 0x12, 0x18, 0x0a, 0x07, 0x73, 0x75, 0x63, 0x63, 0x65, 0x73, 0x73, 0x18, 0x02, 0x20, 0x01,
-	0x28, 0x08, 0x52, 0x07, 0x73, 0x75, 0x63, 0x63, 0x65, 0x73, 0x73, 0x12, 0x18, 0x0a, 0x07, 0x6d,
-	0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x6d, 0x65,
-	0x73, 0x73, 0x61, 0x67, 0x65, 0x32, 0xf7, 0x01, 0x0a, 0x0b, 0x55, 0x73, 0x65, 0x72, 0x53, 0x65,
-	0x72, 0x76, 0x69, 0x63, 0x65, 0x12, 0x36, 0x0a, 0x07, 0x47, 0x65, 0x74, 0x55, 0x73, 0x65, 0x72,
-	0x12, 0x14, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x47, 0x65, 0x74, 0x55, 0x73, 0x65, 0x72, 0x52,
-	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x15, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x47, 0x65,
-	0x74, 0x55, 0x73, 0x65, 0x72, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x48, 0x0a,
-	0x11, 0x53, 0x61, 0x76, 0x65, 0x55, 0x70, 0x6c, 0x6f, 0x61, 0x64, 0x65, 0x64, 0x56, 0x69, 0x64,
-	0x65, 0x6f, 0x12, 0x18, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x55, 0x70, 0x6c, 0x6f, 0x61, 0x64,
-	0x56, 0x69, 0x64, 0x65, 0x6f, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x19, 0x2e, 0x75,
-	0x73, 0x65, 0x72, 0x2e, 0x55, 0x70, 0x6c, 0x6f, 0x61, 0x64, 0x56, 0x69, 0x64, 0x65, 0x6f, 0x52,
-	0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x66, 0x0a, 0x17, 0x47, 0x65, 0x74, 0x55, 0x73,
-	0x65, 0x72, 0x56, 0x69, 0x64, 0x65, 0x6f, 0x73, 0x42, 0x79, 0x45, 0x78, 0x65, 0x72, 0x63, 0x69,
-	0x73, 0x65, 0x12, 0x24, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x47, 0x65, 0x74, 0x55, 0x73, 0x65,
-	0x72, 0x56, 0x69, 0x64, 0x65, 0x6f, 0x73, 0x42, 0x79, 0x45, 0x78, 0x65, 0x72, 0x63, 0x69, 0x73,
-	0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x25, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e,
+	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x25, 0x0a, 0x06, 0x76, 0x69, 0x64, 0x65,
+	0x6f, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x0d, 0x2e, 0x64, 0x62, 0x2e, 0x56, 0x69,
+	0x64, 0x65, 0x6f, 0x49, 0x6e, 0x66, 0x6f, 0x52, 0x06, 0x76, 0x69, 0x64, 0x65, 0x6f, 0x73, 0x12,
+	0x18, 0x0a, 0x07, 0x73, 0x75, 0x63, 0x63, 0x65, 0x73, 0x73, 0x18, 0x02, 0x20, 0x01, 0x28, 0x08,
+	0x52, 0x07, 0x73, 0x75, 0x63, 0x63, 0x65, 0x73, 0x73, 0x12, 0x18, 0x0a, 0x07, 0x6d, 0x65, 0x73,
+	0x73, 0x61, 0x67, 0x65, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x6d, 0x65, 0x73, 0x73,
+	0x61, 0x67, 0x65, 0x32, 0xe9, 0x01, 0x0a, 0x09, 0x44, 0x42, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63,
+	0x65, 0x12, 0x32, 0x0a, 0x07, 0x47, 0x65, 0x74, 0x55, 0x73, 0x65, 0x72, 0x12, 0x12, 0x2e, 0x64,
+	0x62, 0x2e, 0x47, 0x65, 0x74, 0x55, 0x73, 0x65, 0x72, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
+	0x1a, 0x13, 0x2e, 0x64, 0x62, 0x2e, 0x47, 0x65, 0x74, 0x55, 0x73, 0x65, 0x72, 0x52, 0x65, 0x73,
+	0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x44, 0x0a, 0x11, 0x53, 0x61, 0x76, 0x65, 0x55, 0x70, 0x6c,
+	0x6f, 0x61, 0x64, 0x65, 0x64, 0x56, 0x69, 0x64, 0x65, 0x6f, 0x12, 0x16, 0x2e, 0x64, 0x62, 0x2e,
+	0x55, 0x70, 0x6c, 0x6f, 0x61, 0x64, 0x56, 0x69, 0x64, 0x65, 0x6f, 0x52, 0x65, 0x71, 0x75, 0x65,
+	0x73, 0x74, 0x1a, 0x17, 0x2e, 0x64, 0x62, 0x2e, 0x55, 0x70, 0x6c, 0x6f, 0x61, 0x64, 0x56, 0x69,
+	0x64, 0x65, 0x6f, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x62, 0x0a, 0x17, 0x47,
+	0x65, 0x74, 0x55, 0x73, 0x65, 0x72, 0x56, 0x69, 0x64, 0x65, 0x6f, 0x73, 0x42, 0x79, 0x45, 0x78,
+	0x65, 0x72, 0x63, 0x69, 0x73, 0x65, 0x12, 0x22, 0x2e, 0x64, 0x62, 0x2e, 0x47, 0x65, 0x74, 0x55,
+	0x73, 0x65, 0x72, 0x56, 0x69, 0x64, 0x65, 0x6f, 0x73, 0x42, 0x79, 0x45, 0x78, 0x65, 0x72, 0x63,
+	0x69, 0x73, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x23, 0x2e, 0x64, 0x62, 0x2e,
 	0x47, 0x65, 0x74, 0x55, 0x73, 0x65, 0x72, 0x56, 0x69, 0x64, 0x65, 0x6f, 0x73, 0x42, 0x79, 0x45,
 	0x78, 0x65, 0x72, 0x63, 0x69, 0x73, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x42,
-	0x0e, 0x5a, 0x0c, 0x2e, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x3b, 0x75, 0x73, 0x65, 0x72, 0x62,
-	0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x0c, 0x5a, 0x0a, 0x2e, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x3b, 0x64, 0x62, 0x62, 0x06, 0x70,
+	0x72, 0x6f, 0x74, 0x6f, 0x33,
 })
 
 var (
-	file_user_user_proto_rawDescOnce sync.Once
-	file_user_user_proto_rawDescData []byte
+	file_proto_db_db_proto_rawDescOnce sync.Once
+	file_proto_db_db_proto_rawDescData []byte
 )
 
-func file_user_user_proto_rawDescGZIP() []byte {
-	file_user_user_proto_rawDescOnce.Do(func() {
-		file_user_user_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_user_user_proto_rawDesc), len(file_user_user_proto_rawDesc)))
+func file_proto_db_db_proto_rawDescGZIP() []byte {
+	file_proto_db_db_proto_rawDescOnce.Do(func() {
+		file_proto_db_db_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_proto_db_db_proto_rawDesc), len(file_proto_db_db_proto_rawDesc)))
 	})
-	return file_user_user_proto_rawDescData
+	return file_proto_db_db_proto_rawDescData
 }
 
-var file_user_user_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
-var file_user_user_proto_goTypes = []any{
-	(*GetUserRequest)(nil),                  // 0: user.GetUserRequest
-	(*GetUserResponse)(nil),                 // 1: user.GetUserResponse
-	(*UploadVideoRequest)(nil),              // 2: user.UploadVideoRequest
-	(*UploadVideoResponse)(nil),             // 3: user.UploadVideoResponse
-	(*GetUserVideosByExerciseRequest)(nil),  // 4: user.GetUserVideosByExerciseRequest
-	(*VideoInfo)(nil),                       // 5: user.VideoInfo
-	(*GetUserVideosByExerciseResponse)(nil), // 6: user.GetUserVideosByExerciseResponse
+var file_proto_db_db_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
+var file_proto_db_db_proto_goTypes = []any{
+	(*GetUserRequest)(nil),                  // 0: db.GetUserRequest
+	(*GetUserResponse)(nil),                 // 1: db.GetUserResponse
+	(*UploadVideoRequest)(nil),              // 2: db.UploadVideoRequest
+	(*UploadVideoResponse)(nil),             // 3: db.UploadVideoResponse
+	(*GetUserVideosByExerciseRequest)(nil),  // 4: db.GetUserVideosByExerciseRequest
+	(*VideoInfo)(nil),                       // 5: db.VideoInfo
+	(*GetUserVideosByExerciseResponse)(nil), // 6: db.GetUserVideosByExerciseResponse
 }
-var file_user_user_proto_depIdxs = []int32{
-	5, // 0: user.GetUserVideosByExerciseResponse.videos:type_name -> user.VideoInfo
-	0, // 1: user.UserService.GetUser:input_type -> user.GetUserRequest
-	2, // 2: user.UserService.SaveUploadedVideo:input_type -> user.UploadVideoRequest
-	4, // 3: user.UserService.GetUserVideosByExercise:input_type -> user.GetUserVideosByExerciseRequest
-	1, // 4: user.UserService.GetUser:output_type -> user.GetUserResponse
-	3, // 5: user.UserService.SaveUploadedVideo:output_type -> user.UploadVideoResponse
-	6, // 6: user.UserService.GetUserVideosByExercise:output_type -> user.GetUserVideosByExerciseResponse
+var file_proto_db_db_proto_depIdxs = []int32{
+	5, // 0: db.GetUserVideosByExerciseResponse.videos:type_name -> db.VideoInfo
+	0, // 1: db.DBService.GetUser:input_type -> db.GetUserRequest
+	2, // 2: db.DBService.SaveUploadedVideo:input_type -> db.UploadVideoRequest
+	4, // 3: db.DBService.GetUserVideosByExercise:input_type -> db.GetUserVideosByExerciseRequest
+	1, // 4: db.DBService.GetUser:output_type -> db.GetUserResponse
+	3, // 5: db.DBService.SaveUploadedVideo:output_type -> db.UploadVideoResponse
+	6, // 6: db.DBService.GetUserVideosByExercise:output_type -> db.GetUserVideosByExerciseResponse
 	4, // [4:7] is the sub-list for method output_type
 	1, // [1:4] is the sub-list for method input_type
 	1, // [1:1] is the sub-list for extension type_name
@@ -529,26 +528,26 @@ var file_user_user_proto_depIdxs = []int32{
 	0, // [0:1] is the sub-list for field type_name
 }
 
-func init() { file_user_user_proto_init() }
-func file_user_user_proto_init() {
-	if File_user_user_proto != nil {
+func init() { file_proto_db_db_proto_init() }
+func file_proto_db_db_proto_init() {
+	if File_proto_db_db_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_user_user_proto_rawDesc), len(file_user_user_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_db_db_proto_rawDesc), len(file_proto_db_db_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   7,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_user_user_proto_goTypes,
-		DependencyIndexes: file_user_user_proto_depIdxs,
-		MessageInfos:      file_user_user_proto_msgTypes,
+		GoTypes:           file_proto_db_db_proto_goTypes,
+		DependencyIndexes: file_proto_db_db_proto_depIdxs,
+		MessageInfos:      file_proto_db_db_proto_msgTypes,
 	}.Build()
-	File_user_user_proto = out.File
-	file_user_user_proto_goTypes = nil
-	file_user_user_proto_depIdxs = nil
+	File_proto_db_db_proto = out.File
+	file_proto_db_db_proto_goTypes = nil
+	file_proto_db_db_proto_depIdxs = nil
 }

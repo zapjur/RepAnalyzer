@@ -1,10 +1,10 @@
 package main
 
 import (
-	"user-service/internal/database"
-	"user-service/internal/server"
+	"db-service/internal/database"
+	"db-service/internal/server"
 
-	"user-service/internal/config"
+	"db-service/internal/config"
 )
 
 func main() {

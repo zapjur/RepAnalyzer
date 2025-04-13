@@ -2,19 +2,19 @@ package server
 
 import (
 	"context"
+	"db-service/internal/config"
+	"db-service/internal/repository"
 	"log"
 	"net"
 	"time"
-	"user-service/internal/config"
-	"user-service/internal/repository"
 
-	pb "user-service/proto"
+	pb "db-service/proto"
 
 	"google.golang.org/grpc"
 )
 
-type UserServer struct {
-	pb.UnimplementedUserServiceServer
+type DBServer struct {
+	pb.UnimplementedDBServiceServer
 }
 
 type Video struct {
@@ -23,7 +23,7 @@ type Video struct {
 	ID        string
 }
 
-func (s *UserServer) GetUser(ctx context.Context, req *pb.GetUserRequest) (*pb.GetUserResponse, error) {
+func (s *DBServer) GetUser(ctx context.Context, req *pb.GetUserRequest) (*pb.GetUserResponse, error) {
 	log.Printf("Checking user: %s", req.Auth0Id)
 
 	user, err := repository.GetUserByAuth0ID(req.Auth0Id)
@@ -52,7 +52,7 @@ func (s *UserServer) GetUser(ctx context.Context, req *pb.GetUserRequest) (*pb.G
 	}, nil
 }
 
-func (s *UserServer) SaveUploadedVideo(ctx context.Context, req *pb.UploadVideoRequest) (*pb.UploadVideoResponse, error) {
+func (s *DBServer) SaveUploadedVideo(ctx context.Context, req *pb.UploadVideoRequest) (*pb.UploadVideoResponse, error) {
 	log.Printf("Saving video for user: %s", req.Auth0Id)
 
 	err := repository.SaveUploadedVideo(req.Auth0Id, req.Url, req.ExerciseName)
@@ -76,7 +76,7 @@ func StartGRPCServer(cfg *config.Config) {
 	}
 
 	grpcServer := grpc.NewServer()
-	pb.RegisterUserServiceServer(grpcServer, &UserServer{})
+	pb.RegisterDBServiceServer(grpcServer, &DBServer{})
 
 	log.Printf("User Service running on port :%s", cfg.GRPCPort)
 
@@ -85,7 +85,7 @@ func StartGRPCServer(cfg *config.Config) {
 	}
 }
 
-func (s *UserServer) GetUserVideosByExercise(ctx context.Context, req *pb.GetUserVideosByExerciseRequest) (*pb.GetUserVideosByExerciseResponse, error) {
+func (s *DBServer) GetUserVideosByExercise(ctx context.Context, req *pb.GetUserVideosByExerciseRequest) (*pb.GetUserVideosByExerciseResponse, error) {
 	log.Printf("Getting videos for user: %s and exercise: %s", req.Auth0Id, req.ExerciseName)
 
 	videos, err := repository.GetUserVideosByExercise(req.Auth0Id, req.ExerciseName)

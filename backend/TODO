@@ -1,4 +1,4 @@
-5. dodac wiecej property do tabeli videos. ciezar, powtorzenia itp. miejsce na przetworzone videos
+5. dodac wiecej property do tabeli videos. ciezar, powtorzenia itp.
 6. grpc do orchestratora
 7. rabbitmq w orchestrator
 8. odbieranie taskow z rabbitmq w barpath

@@ -2,9 +2,9 @@ package repository
 
 import (
 	"context"
+	"db-service/internal/database"
 	"fmt"
 	"time"
-	"user-service/internal/database"
 
 	"github.com/jackc/pgx/v5"
 )

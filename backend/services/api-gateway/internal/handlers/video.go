@@ -3,7 +3,7 @@ package handlers
 import (
 	"api-gateway/internal/grpc"
 	"api-gateway/internal/utils"
-	userPb "api-gateway/proto/user"
+	dbPb "api-gateway/proto/db"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -104,7 +104,7 @@ func (h *VideoHandler) UploadVideo(w http.ResponseWriter, r *http.Request) {
 	bucketName := "videos"
 	objectURL := fmt.Sprintf("%s/%s/%s", baseURL, bucketName, uploadInfo.Key)
 
-	h.grpcClient.UserService.SaveUploadedVideo(context.Background(), &userPb.UploadVideoRequest{
+	h.grpcClient.DBService.SaveUploadedVideo(context.Background(), &dbPb.UploadVideoRequest{
 		Auth0Id:      auth0ID,
 		Url:          objectURL,
 		ExerciseName: exercise,
@@ -124,7 +124,7 @@ func (h *VideoHandler) GetVideosByExercise(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	response, err := h.grpcClient.UserService.GetUserVideosByExercise(context.Background(), &userPb.GetUserVideosByExerciseRequest{
+	response, err := h.grpcClient.DBService.GetUserVideosByExercise(context.Background(), &dbPb.GetUserVideosByExerciseRequest{
 		Auth0Id:      auth0ID,
 		ExerciseName: exercise,
 	})

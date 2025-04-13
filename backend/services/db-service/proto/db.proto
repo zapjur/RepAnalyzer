@@ -1,8 +1,8 @@
 syntax = "proto3";
 
-package user;
+package db;
 
-option go_package = "./proto;user";
+option go_package = "./proto;db";
 
 message GetUserRequest {
   string auth0_id = 1;
@@ -44,7 +44,7 @@ message GetUserVideosByExerciseResponse {
   string message = 3;
 }
 
-service UserService {
+service DBService {
   rpc GetUser(GetUserRequest) returns (GetUserResponse);
   rpc SaveUploadedVideo(UploadVideoRequest) returns (UploadVideoResponse);
   rpc GetUserVideosByExercise(GetUserVideosByExerciseRequest) returns (GetUserVideosByExerciseResponse);
