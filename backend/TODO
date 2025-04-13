@@ -1,4 +1,8 @@
-5. dodac wiecej property do tabeli videos. ciezar, powtorzenia itp.
-6. grpc do orchestratora
-7. rabbitmq w orchestrator
-8. odbieranie taskow z rabbitmq w barpath
+- dodac wiecej property do tabeli videos. ciezar, powtorzenia itp.
+- refactor zmienic id z string na int64 w db.proto
+- grpc do orchestratora
+- rabbitmq w orchestrator
+- odbieranie taskow z rabbitmq w barpath
+- minio access service - do frontu
+- minio - access policy dla serwisow w docker-compose
+- podstrona na wynik analizy wideo

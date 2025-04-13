@@ -15,7 +15,7 @@ func Load() *Config {
 	_ = godotenv.Load()
 
 	return &Config{
-		DatabaseURL: getEnv("DATABASE_URL", "postgres://user:password@postgres:5432/user_db?sslmode=disable"),
+		DatabaseURL: getEnv("DATABASE_URL", "postgres://user:password@postgres:5432/database?sslmode=disable"),
 		GRPCPort:    getEnv("GRPC_PORT", "50051"),
 	}
 }

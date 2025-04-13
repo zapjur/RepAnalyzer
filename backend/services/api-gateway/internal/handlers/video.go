@@ -9,10 +9,8 @@ import (
 	"fmt"
 	"github.com/go-chi/chi/v5"
 	"github.com/minio/minio-go/v7"
-	"io"
 	"net/http"
 	"os"
-	"path/filepath"
 	"strings"
 )
 
@@ -26,50 +24,14 @@ func NewVideoHandler(minioClient *minio.Client, grpcClient *grpc.Client) *VideoH
 }
 
 func (h *VideoHandler) UploadVideo(w http.ResponseWriter, r *http.Request) {
-	err := r.ParseMultipartForm(100 << 20) // 100 MB
+	auth0ID, exercise, cleanFilename, tmpInput, err := h.parseAndPrepareFormData(w, r)
 	if err != nil {
-		http.Error(w, "Could not parse multipart form", http.StatusBadRequest)
-		return
-	}
-
-	file, handler, err := r.FormFile("file")
-	if err != nil {
-		http.Error(w, "Could not get file from request", http.StatusBadRequest)
-		return
-	}
-	defer file.Close()
-
-	cleanFilename := strings.NewReplacer("(", "_", ")", "_", " ", "_").Replace(handler.Filename)
-
-	exercise := r.FormValue("exercise")
-	if exercise == "" {
-		http.Error(w, "Missing exercise field", http.StatusBadRequest)
-		return
-	}
-	exercise = strings.ReplaceAll(exercise, " ", "_")
-
-	auth0ID := chi.URLParam(r, "auth0ID")
-	if auth0ID == "" {
-		http.Error(w, "Missing user ID in path", http.StatusBadRequest)
-		return
-	}
-
-	auth0IDEdited := strings.ReplaceAll(auth0ID, "|", "_")
-
-	tmpInput, err := os.CreateTemp("", "upload-*"+filepath.Ext(cleanFilename))
-	if err != nil {
-		http.Error(w, "Failed to create temp file", http.StatusInternalServerError)
 		return
 	}
 	defer os.Remove(tmpInput.Name())
 	defer tmpInput.Close()
 
-	file.Seek(0, io.SeekStart)
-	_, err = io.Copy(tmpInput, file)
-	if err != nil {
-		http.Error(w, "Failed to write uploaded file", http.StatusInternalServerError)
-		return
-	}
+	auth0IDEdited := strings.ReplaceAll(auth0ID, "|", "_")
 
 	convertedPath, err := utils.ConvertToMP4(tmpInput.Name())
 	if err != nil {
@@ -78,37 +40,26 @@ func (h *VideoHandler) UploadVideo(w http.ResponseWriter, r *http.Request) {
 	}
 	defer os.Remove(convertedPath)
 
-	convertedFile, err := os.Open(convertedPath)
+	convertedFile, fileInfo, err := openConvertedFile(convertedPath)
 	if err != nil {
 		http.Error(w, "Failed to open converted file", http.StatusInternalServerError)
 		return
 	}
 	defer convertedFile.Close()
 
-	fileInfo, _ := convertedFile.Stat()
-
-	baseFilename := strings.TrimSuffix(cleanFilename, filepath.Ext(cleanFilename))
-	objectName := fmt.Sprintf("%s/%s/%s.mp4", auth0IDEdited, exercise, baseFilename)
-
-	uploadInfo, err := h.minio.PutObject(context.Background(), "videos", objectName, convertedFile, fileInfo.Size(), minio.PutObjectOptions{
-		ContentType: "video/mp4",
-	})
+	objectURL, err := h.uploadToMinIO(auth0IDEdited, exercise, cleanFilename, convertedFile, fileInfo)
 	if err != nil {
 		http.Error(w, "Failed to upload to MinIO: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	fmt.Fprintf(w, "File uploaded to MinIO: %s (size: %d bytes)", uploadInfo.Key, uploadInfo.Size)
+	videoID, err := h.saveVideoToDB(auth0ID, objectURL, exercise)
+	if err != nil {
+		http.Error(w, "Failed to save video info: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
 
-	baseURL := "http://localhost:9000"
-	bucketName := "videos"
-	objectURL := fmt.Sprintf("%s/%s/%s", baseURL, bucketName, uploadInfo.Key)
-
-	h.grpcClient.DBService.SaveUploadedVideo(context.Background(), &dbPb.UploadVideoRequest{
-		Auth0Id:      auth0ID,
-		Url:          objectURL,
-		ExerciseName: exercise,
-	})
+	fmt.Fprintf(w, "File uploaded to minIO, video id: %s", videoID)
 }
 
 func (h *VideoHandler) GetVideosByExercise(w http.ResponseWriter, r *http.Request) {

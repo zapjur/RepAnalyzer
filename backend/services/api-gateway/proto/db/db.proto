@@ -23,6 +23,7 @@ message UploadVideoRequest {
 message UploadVideoResponse {
   bool success = 1;
   string message = 2;
+  int64 video_id = 3;
 }
 
 message GetUserVideosByExerciseRequest {

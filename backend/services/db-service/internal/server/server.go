@@ -55,7 +55,7 @@ func (s *DBServer) GetUser(ctx context.Context, req *pb.GetUserRequest) (*pb.Get
 func (s *DBServer) SaveUploadedVideo(ctx context.Context, req *pb.UploadVideoRequest) (*pb.UploadVideoResponse, error) {
 	log.Printf("Saving video for user: %s", req.Auth0Id)
 
-	err := repository.SaveUploadedVideo(req.Auth0Id, req.Url, req.ExerciseName)
+	video_id, err := repository.SaveUploadedVideo(req.Auth0Id, req.Url, req.ExerciseName)
 	if err != nil {
 		return &pb.UploadVideoResponse{
 			Success: false,
@@ -66,6 +66,7 @@ func (s *DBServer) SaveUploadedVideo(ctx context.Context, req *pb.UploadVideoReq
 	return &pb.UploadVideoResponse{
 		Success: true,
 		Message: "Video saved successfully",
+		VideoId: video_id,
 	}, nil
 }
 

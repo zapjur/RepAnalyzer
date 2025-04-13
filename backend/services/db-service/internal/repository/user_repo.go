@@ -41,21 +41,26 @@ func CreateUser(auth0ID, email string) error {
 	return err
 }
 
-func SaveUploadedVideo(auth0ID, url, exercise string) error {
+func SaveUploadedVideo(auth0ID, url, exercise string) (int64, error) {
 	db := database.GetDB()
 
 	var userID int
 	err := db.QueryRow(context.Background(), "SELECT id FROM users WHERE auth0_id = $1", auth0ID).Scan(&userID)
 	if err != nil {
-		return fmt.Errorf("could not find user with auth0_id %s: %w", auth0ID, err)
+		return 0, fmt.Errorf("could not find user with auth0_id %s: %w", auth0ID, err)
 	}
 
-	_, err = db.Exec(context.Background(), `
+	var videoID int64
+	err = db.QueryRow(context.Background(), `
 		INSERT INTO videos (user_id, url, exercise_name)
 		VALUES ($1, $2, $3)
-	`, userID, url, exercise)
+		RETURNING id
+	`, userID, url, exercise).Scan(&videoID)
+	if err != nil {
+		return 0, fmt.Errorf("could not insert video: %w", err)
+	}
 
-	return err
+	return videoID, nil
 }
 
 func GetUserVideosByExercise(auth0ID, exercise string) ([]Video, error) {
