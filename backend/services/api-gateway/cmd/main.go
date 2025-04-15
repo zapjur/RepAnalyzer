@@ -34,7 +34,13 @@ func main() {
 
 	grpcDBClient, err := grpc.NewClient(cfg.DBServiceAddress)
 	if err != nil {
-		log.Fatalf("failed to setup gRPC client: %v", err)
+		log.Fatalf("failed to setup gRPC DB client: %v", err)
+	}
+	defer grpcDBClient.Close()
+
+	grpcOrchestratorClient, err := grpc.NewClient(cfg.OrchestratorAddress)
+	if err != nil {
+		log.Fatalf("failed to setup gRPC orchestrator client: %v", err)
 	}
 	defer grpcDBClient.Close()
 
@@ -42,7 +48,7 @@ func main() {
 	minioClient.EnsureBucketExists("videos")
 
 	userHandler := handlers.NewUserHandler(grpcDBClient)
-	videoHandler := handlers.NewVideoHandler(minioClient.Minio, grpcDBClient)
+	videoHandler := handlers.NewVideoHandler(minioClient.Minio, grpcDBClient, grpcOrchestratorClient)
 
 	r := chi.NewRouter()
 

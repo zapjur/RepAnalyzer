@@ -15,12 +15,13 @@ import (
 )
 
 type VideoHandler struct {
-	minio      *minio.Client
-	grpcClient *grpc.Client
+	minio                  *minio.Client
+	grpcDBClient           *grpc.Client
+	grpcOrchestratorClient *grpc.Client
 }
 
-func NewVideoHandler(minioClient *minio.Client, grpcClient *grpc.Client) *VideoHandler {
-	return &VideoHandler{minio: minioClient, grpcClient: grpcClient}
+func NewVideoHandler(minioClient *minio.Client, grpcDBClient, grpcOrchestratorClient *grpc.Client) *VideoHandler {
+	return &VideoHandler{minio: minioClient, grpcDBClient: grpcDBClient, grpcOrchestratorClient: grpcOrchestratorClient}
 }
 
 func (h *VideoHandler) UploadVideo(w http.ResponseWriter, r *http.Request) {
@@ -59,7 +60,17 @@ func (h *VideoHandler) UploadVideo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Fprintf(w, "File uploaded to minIO, video id: %s", videoID)
+	resp, err := h.sendVideoToAnalyze(objectURL, exercise, auth0ID, videoID)
+	if err != nil {
+		http.Error(w, "Failed to send video for analysis: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if !resp.Success {
+		http.Error(w, "Failed to send video for analysis: "+resp.Message, http.StatusInternalServerError)
+		return
+	}
+	fmt.Fprintf(w, "File uploaded, video id: %d", videoID)
+
 }
 
 func (h *VideoHandler) GetVideosByExercise(w http.ResponseWriter, r *http.Request) {
@@ -75,7 +86,7 @@ func (h *VideoHandler) GetVideosByExercise(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	response, err := h.grpcClient.DBService.GetUserVideosByExercise(context.Background(), &dbPb.GetUserVideosByExerciseRequest{
+	response, err := h.grpcDBClient.DBService.GetUserVideosByExercise(context.Background(), &dbPb.GetUserVideosByExerciseRequest{
 		Auth0Id:      auth0ID,
 		ExerciseName: exercise,
 	})

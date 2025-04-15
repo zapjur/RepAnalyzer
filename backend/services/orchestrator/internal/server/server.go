@@ -2,15 +2,21 @@ package server
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
+	"github.com/streadway/amqp"
 	"google.golang.org/grpc"
 	"log"
 	"net"
 	"orchestrator/internal/config"
+	"orchestrator/internal/redis"
 	pb "orchestrator/proto"
 )
 
 type OrchestratorServer struct {
 	pb.UnimplementedOrchestratorServer
+	Redis         *redis.RedisManager
+	RabbitChannel *amqp.Channel
 }
 
 type VideoToAnalyze struct {
@@ -20,14 +26,23 @@ type VideoToAnalyze struct {
 	VideoId      int64
 }
 
-func StartGRPCServer(cfg *config.Config) {
+type TaskMessage struct {
+	URL          string `json:"url"`
+	ExerciseName string `json:"exercise_name"`
+	VideoID      string `json:"video_id"`
+}
+
+func StartGRPCServer(cfg *config.Config, redisManager *redis.RedisManager, rabbitChannel *amqp.Channel) {
 	listener, err := net.Listen("tcp", ":"+cfg.GRPCPort)
 	if err != nil {
 		log.Fatalf("Failed to listen: %v", err)
 	}
 
 	grpcServer := grpc.NewServer()
-	pb.RegisterOrchestratorServer(grpcServer, &OrchestratorServer{})
+	pb.RegisterOrchestratorServer(grpcServer, &OrchestratorServer{
+		Redis:         redisManager,
+		RabbitChannel: rabbitChannel,
+	})
 
 	log.Printf("Orchestrator Service running on port :%s", cfg.GRPCPort)
 
@@ -39,10 +54,46 @@ func StartGRPCServer(cfg *config.Config) {
 func (s *OrchestratorServer) AnalyzeVideo(ctx context.Context, req *pb.VideoToAnalyzeRequest) (*pb.VideoToAnalyzeResponse, error) {
 
 	// adding task to redis
+	videoIDStr := fmt.Sprintf("%d", req.VideoId)
+	err := s.Redis.SetTaskStatus(videoIDStr, "bar_path", "pending")
+	if err != nil {
+		log.Printf("Failed to set task status in Redis: %v", err)
+		return errorResponse("Failed to set task status in Redis", err)
+
+	}
 
 	// sending video data to appropriate queue
+	msg := TaskMessage{
+		URL:          req.Url,
+		ExerciseName: req.ExerciseName,
+		VideoID:      videoIDStr,
+	}
+	taskBody, err := json.Marshal(msg)
+	if err != nil {
+		log.Printf("Failed to marshal task message: %v", err)
+		return errorResponse("Failed to marshal task message", err)
+	}
+	err = s.RabbitChannel.Publish(
+		"",
+		"bar_path_queue",
+		false,
+		false,
+		amqp.Publishing{
+			ContentType: "application/json",
+			Body:        taskBody,
+		},
+	)
+	if err != nil {
+		log.Printf("Failed to publish message to RabbitMQ: %v", err)
+		return errorResponse("Failed to publish message to RabbitMQ", err)
+
+	}
 
 	// send back response
+	response := &pb.VideoToAnalyzeResponse{
+		Success: true,
+		Message: "Video analysis started successfully",
+	}
 
-	return nil, nil
+	return response, nil
 }

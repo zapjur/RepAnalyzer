@@ -31,7 +31,7 @@ func main() {
 	}
 	defer redisClient.Close()
 
-	//redisManager := &redis.RedisManager{RedisClient: redisClient}
+	redisManager := &redis.RedisManager{RedisClient: redisClient}
 
-	server.StartGRPCServer(cfg)
+	server.StartGRPCServer(cfg, redisManager, rabbitChannel)
 }

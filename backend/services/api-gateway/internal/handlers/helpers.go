@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	orPb "api-gateway/proto/analysis"
 	dbPb "api-gateway/proto/db"
 	"context"
 	"fmt"
@@ -89,7 +90,7 @@ func (h *VideoHandler) uploadToMinIO(auth0ID, exercise, baseFilename string, fil
 }
 
 func (h *VideoHandler) saveVideoToDB(auth0ID, url, exercise string) (int64, error) {
-	resp, err := h.grpcClient.DBService.SaveUploadedVideo(context.Background(), &dbPb.UploadVideoRequest{
+	resp, err := h.grpcDBClient.DBService.SaveUploadedVideo(context.Background(), &dbPb.UploadVideoRequest{
 		Auth0Id:      auth0ID,
 		Url:          url,
 		ExerciseName: exercise,
@@ -98,4 +99,17 @@ func (h *VideoHandler) saveVideoToDB(auth0ID, url, exercise string) (int64, erro
 		return 0, err
 	}
 	return resp.GetVideoId(), nil
+}
+
+func (h *VideoHandler) sendVideoToAnalyze(url, exercise, auth0ID string, video_id int64) (*orPb.VideoToAnalyzeResponse, error) {
+	resp, err := h.grpcOrchestratorClient.OrchestratorService.AnalyzeVideo(context.Background(), &orPb.VideoToAnalyzeRequest{
+		Url:          url,
+		ExerciseName: exercise,
+		Auth0Id:      auth0ID,
+		VideoId:      video_id,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
 }
