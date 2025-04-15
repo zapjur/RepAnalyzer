@@ -4,7 +4,7 @@
 // - protoc             v5.29.3
 // source: proto/analysis.proto
 
-package user
+package analysis
 
 import (
 	context "context"

@@ -2,13 +2,13 @@ syntax = "proto3";
 
 package analysis;
 
-option go_package = "./proto;user";
+option go_package = "./proto;analysis";
 
 message VideoToAnalyzeRequest {
   string url = 1;
   string exercise_name = 2;
   string auth0_id = 3;
-  string video_id = 4;
+  int64 video_id = 4;
 }
 
 message VideoToAnalyzeResponse {

@@ -79,9 +79,9 @@ func StartGRPCServer(cfg *config.Config) {
 	grpcServer := grpc.NewServer()
 	pb.RegisterDBServiceServer(grpcServer, &DBServer{})
 
-	log.Printf("User Service running on port :%s", cfg.GRPCPort)
+	log.Printf("DB Service running on port :%s", cfg.GRPCPort)
 
-	if err := grpcServer.Serve(listener); err != nil {
+	if err = grpcServer.Serve(listener); err != nil {
 		log.Fatalf("Failed to serve: %v", err)
 	}
 }
