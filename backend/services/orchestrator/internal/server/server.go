@@ -38,6 +38,8 @@ func StartGRPCServer(cfg *config.Config) {
 
 func (s *OrchestratorServer) AnalyzeVideo(ctx context.Context, req *pb.VideoToAnalyzeRequest) (*pb.VideoToAnalyzeResponse, error) {
 
+	// adding task to redis
+
 	// sending video data to appropriate queue
 
 	// send back response

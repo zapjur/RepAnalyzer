@@ -4,6 +4,7 @@ import (
 	"log"
 	"orchestrator/internal/config"
 	"orchestrator/internal/rabbitmq"
+	"orchestrator/internal/redis"
 	"orchestrator/internal/server"
 )
 
@@ -23,6 +24,14 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to declare RabbitMQ queues: %v", err)
 	}
+
+	redisClient, err := redis.ConnectToRedis(cfg.RedisAddr)
+	if err != nil {
+		log.Fatalf("Failed to connect to Redis: %v", err)
+	}
+	defer redisClient.Close()
+
+	//redisManager := &redis.RedisManager{RedisClient: redisClient}
 
 	server.StartGRPCServer(cfg)
 }

@@ -8,6 +8,7 @@ import (
 type Config struct {
 	GRPCPort    string
 	RabbitMQURI string
+	RedisAddr   string
 }
 
 func Load() *Config {
@@ -16,6 +17,7 @@ func Load() *Config {
 	return &Config{
 		GRPCPort:    getEnv("GRPC_PORT", "50051"),
 		RabbitMQURI: getEnv("RABBITMQ_URI", "amqp://guest:guest@rabbitmq:5672/"),
+		RedisAddr:   getEnv("REDIS_ADDR", "redis:6379"),
 	}
 }
 
