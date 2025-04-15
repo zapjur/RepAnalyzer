@@ -28,6 +28,15 @@ services:
     ports:
       - "8080:8080"
 
+  orchestrator:
+    build: ./services/orchestrator
+    container_name: orchestrator
+    ports:
+      - "8081:8081"
+    depends_on:
+      - db-service
+      - api-gateway
+
   minio:
     image: minio/minio
     container_name: minio

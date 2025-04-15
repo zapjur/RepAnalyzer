@@ -6,14 +6,16 @@ import (
 )
 
 type Config struct {
-	GRPCPort string
+	GRPCPort    string
+	RabbitMQURI string
 }
 
 func Load() *Config {
 	_ = godotenv.Load()
 
 	return &Config{
-		GRPCPort: getEnv("GRPC_PORT", "50051"),
+		GRPCPort:    getEnv("GRPC_PORT", "50051"),
+		RabbitMQURI: getEnv("RABBITMQ_URI", "amqp://guest:guest@rabbitmq:5672/"),
 	}
 }
 
