@@ -1,7 +1,4 @@
 - dodac wiecej property do tabeli videos. ciezar, powtorzenia itp.
-- grpc do orchestratora
-- rabbitmq w orchestrator
-- odbieranie taskow z rabbitmq w barpath
 - minio access service - do frontu
 - minio - access policy dla serwisow w docker-compose
 - podstrona na wynik analizy wideo

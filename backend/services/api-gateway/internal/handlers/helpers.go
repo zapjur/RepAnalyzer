@@ -74,7 +74,7 @@ func openConvertedFile(path string) (*os.File, os.FileInfo, error) {
 
 func (h *VideoHandler) uploadToMinIO(auth0ID, exercise, baseFilename string, file *os.File, info os.FileInfo) (string, error) {
 	baseFilename = strings.TrimSuffix(baseFilename, filepath.Ext(baseFilename))
-	objectName := fmt.Sprintf("%s/%s/%s.mp4", auth0ID, exercise, baseFilename)
+	objectName := fmt.Sprintf("%s/%s/original/%s.mp4", auth0ID, exercise, baseFilename)
 
 	uploadInfo, err := h.minio.PutObject(context.Background(), "videos", objectName, file, info.Size(), minio.PutObjectOptions{
 		ContentType: "video/mp4",
@@ -83,7 +83,7 @@ func (h *VideoHandler) uploadToMinIO(auth0ID, exercise, baseFilename string, fil
 		return "", err
 	}
 
-	baseURL := "http://localhost:9000"
+	baseURL := "http://minio:9000"
 	bucketName := "videos"
 	objectURL := fmt.Sprintf("%s/%s/%s", baseURL, bucketName, uploadInfo.Key)
 	return objectURL, nil

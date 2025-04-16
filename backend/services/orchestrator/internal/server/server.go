@@ -11,6 +11,7 @@ import (
 	"orchestrator/internal/config"
 	"orchestrator/internal/redis"
 	pb "orchestrator/proto"
+	"strings"
 )
 
 type OrchestratorServer struct {
@@ -30,6 +31,8 @@ type TaskMessage struct {
 	URL          string `json:"url"`
 	ExerciseName string `json:"exercise_name"`
 	VideoID      string `json:"video_id"`
+	Auth0Id      string `json:"auth0_id"`
+	ReplyQueue   string `json:"reply_queue"`
 }
 
 func StartGRPCServer(cfg *config.Config, redisManager *redis.RedisManager, rabbitChannel *amqp.Channel) {
@@ -62,11 +65,15 @@ func (s *OrchestratorServer) AnalyzeVideo(ctx context.Context, req *pb.VideoToAn
 
 	}
 
+	auth0IDEdited := strings.ReplaceAll(req.Auth0Id, "|", "_")
+
 	// sending video data to appropriate queue
 	msg := TaskMessage{
 		URL:          req.Url,
 		ExerciseName: req.ExerciseName,
 		VideoID:      videoIDStr,
+		Auth0Id:      auth0IDEdited,
+		ReplyQueue:   "bar_path_results_queue",
 	}
 	taskBody, err := json.Marshal(msg)
 	if err != nil {

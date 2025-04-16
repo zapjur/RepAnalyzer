@@ -37,6 +37,21 @@ services:
       - db-service
       - api-gateway
 
+  barpath:
+    build: ./services/barpath
+    container_name: barpath
+    depends_on:
+      - rabbitmq
+      - minio
+      - orchestrator
+    volumes:
+      - ./services/barpath/runs:/app/runs
+    environment:
+      MINIO_ENDPOINT: minio:9000
+      MINIO_ACCESS_KEY: admin
+      MINIO_SECRET_KEY: admin123
+
+
   minio:
     image: minio/minio
     container_name: minio
