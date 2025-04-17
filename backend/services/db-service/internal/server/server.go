@@ -113,3 +113,20 @@ func (s *DBServer) GetUserVideosByExercise(ctx context.Context, req *pb.GetUserV
 		Videos:  videoInfos,
 	}, nil
 }
+
+func (s *DBServer) SaveAnalysis(ctx context.Context, req *pb.VideoAnalysisRequest) (*pb.SaveAnalysisResponse, error) {
+	log.Printf("Saving analysis for video ID: %d", req.VideoId)
+
+	_, err := repository.SaveAnalysis(req.VideoId, req.Type, req.ResultUrl)
+	if err != nil {
+		return &pb.SaveAnalysisResponse{
+			Success: false,
+			Message: "Database error: " + err.Error(),
+		}, err
+	}
+
+	return &pb.SaveAnalysisResponse{
+		Success: true,
+		Message: "Analysis saved successfully",
+	}, nil
+}

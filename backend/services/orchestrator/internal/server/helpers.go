@@ -3,12 +3,12 @@ package server
 import (
 	"fmt"
 	"log"
-	pb "orchestrator/proto"
+	anPb "orchestrator/proto/analysis"
 )
 
-func errorResponse(msg string, err error) (*pb.VideoToAnalyzeResponse, error) {
+func errorResponse(msg string, err error) (*anPb.VideoToAnalyzeResponse, error) {
 	log.Printf("%s: %v", msg, err)
-	return &pb.VideoToAnalyzeResponse{
+	return &anPb.VideoToAnalyzeResponse{
 		Success: false,
 		Message: msg,
 	}, fmt.Errorf("%s: %w", msg, err)

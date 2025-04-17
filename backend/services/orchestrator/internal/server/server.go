@@ -10,12 +10,12 @@ import (
 	"net"
 	"orchestrator/internal/config"
 	"orchestrator/internal/redis"
-	pb "orchestrator/proto"
+	anPb "orchestrator/proto/analysis"
 	"strings"
 )
 
 type OrchestratorServer struct {
-	pb.UnimplementedOrchestratorServer
+	anPb.UnimplementedOrchestratorServer
 	Redis         *redis.RedisManager
 	RabbitChannel *amqp.Channel
 }
@@ -42,7 +42,7 @@ func StartGRPCServer(cfg *config.Config, redisManager *redis.RedisManager, rabbi
 	}
 
 	grpcServer := grpc.NewServer()
-	pb.RegisterOrchestratorServer(grpcServer, &OrchestratorServer{
+	anPb.RegisterOrchestratorServer(grpcServer, &OrchestratorServer{
 		Redis:         redisManager,
 		RabbitChannel: rabbitChannel,
 	})
@@ -54,7 +54,7 @@ func StartGRPCServer(cfg *config.Config, redisManager *redis.RedisManager, rabbi
 	}
 }
 
-func (s *OrchestratorServer) AnalyzeVideo(ctx context.Context, req *pb.VideoToAnalyzeRequest) (*pb.VideoToAnalyzeResponse, error) {
+func (s *OrchestratorServer) AnalyzeVideo(ctx context.Context, req *anPb.VideoToAnalyzeRequest) (*anPb.VideoToAnalyzeResponse, error) {
 
 	// adding task to redis
 	videoIDStr := fmt.Sprintf("%d", req.VideoId)
@@ -97,7 +97,7 @@ func (s *OrchestratorServer) AnalyzeVideo(ctx context.Context, req *pb.VideoToAn
 	}
 
 	// send back response
-	response := &pb.VideoToAnalyzeResponse{
+	response := &anPb.VideoToAnalyzeResponse{
 		Success: true,
 		Message: "Video analysis started successfully",
 	}

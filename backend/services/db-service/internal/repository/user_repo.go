@@ -94,3 +94,19 @@ func GetUserVideosByExercise(auth0ID, exercise string) ([]Video, error) {
 
 	return videos, nil
 }
+
+func SaveAnalysis(videoID int64, analysisType, resultUrl string) (int64, error) {
+	db := database.GetDB()
+
+	var analysisID int64
+	err := db.QueryRow(context.Background(), `
+		INSERT INTO video_analysis (video_id, type, result_url)
+		VALUES ($1, $2, $3)
+		RETURNING id
+	`, videoID, analysisType, resultUrl).Scan(&analysisID)
+	if err != nil {
+		return 0, fmt.Errorf("could not insert analysis for video_id %d: %w", videoID, err)
+	}
+
+	return analysisID, nil
+}

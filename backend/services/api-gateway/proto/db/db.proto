@@ -39,6 +39,17 @@ message VideoInfo {
   int64 id = 5;
 }
 
+message VideoAnalysisRequest {
+  int64 video_id = 1;
+  string type = 2;
+  string result_url = 3;
+}
+
+message SaveAnalysisResponse {
+  bool success = 1;
+  string message = 2;
+}
+
 message GetUserVideosByExerciseResponse {
   repeated VideoInfo videos = 1;
   bool success = 2;
@@ -49,4 +60,5 @@ service DBService {
   rpc GetUser(GetUserRequest) returns (GetUserResponse);
   rpc SaveUploadedVideo(UploadVideoRequest) returns (UploadVideoResponse);
   rpc GetUserVideosByExercise(GetUserVideosByExerciseRequest) returns (GetUserVideosByExerciseResponse);
+  rpc SaveAnalysis(VideoAnalysisRequest) returns (SaveAnalysisResponse);
 }

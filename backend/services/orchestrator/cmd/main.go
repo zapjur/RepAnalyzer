@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"orchestrator/internal/client"
 	"orchestrator/internal/config"
 	"orchestrator/internal/rabbitmq"
 	"orchestrator/internal/redis"
@@ -33,7 +34,13 @@ func main() {
 
 	redisManager := &redis.RedisManager{RedisClient: redisClient}
 
-	rabbitmq.StartConsumers(rabbitChannel, redisManager)
+	grpcClient, err := client.NewClient(cfg.DBServiceAddress)
+	if err != nil {
+		log.Fatalf("failed to setup gRPC DB client: %v", err)
+	}
+	defer grpcClient.Close()
+
+	rabbitmq.StartConsumers(rabbitChannel, redisManager, grpcClient)
 
 	server.StartGRPCServer(cfg, redisManager, rabbitChannel)
 }
