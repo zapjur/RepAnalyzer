@@ -33,5 +33,7 @@ func main() {
 
 	redisManager := &redis.RedisManager{RedisClient: redisClient}
 
+	rabbitmq.StartConsumers(rabbitChannel, redisManager)
+
 	server.StartGRPCServer(cfg, redisManager, rabbitChannel)
 }
