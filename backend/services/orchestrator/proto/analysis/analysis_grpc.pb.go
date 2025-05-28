@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.5.1
 // - protoc             v5.29.3
-// source: proto/analysis.proto
+// source: proto/analysis/analysis.proto
 
 package analysis
 
@@ -117,5 +117,5 @@ var Orchestrator_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "proto/analysis.proto",
+	Metadata: "proto/analysis/analysis.proto",
 }

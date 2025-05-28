@@ -72,41 +72,44 @@ func openConvertedFile(path string) (*os.File, os.FileInfo, error) {
 	return f, info, nil
 }
 
-func (h *VideoHandler) uploadToMinIO(auth0ID, exercise, baseFilename string, file *os.File, info os.FileInfo) (string, error) {
+func (h *VideoHandler) uploadToMinIO(auth0ID, exercise, baseFilename string, file *os.File, info os.FileInfo) (*MinioObjectRef, error) {
 	baseFilename = strings.TrimSuffix(baseFilename, filepath.Ext(baseFilename))
-	objectName := fmt.Sprintf("%s/%s/original/%s.mp4", auth0ID, exercise, baseFilename)
+	objectKey := fmt.Sprintf("%s/%s/original/%s.mp4", auth0ID, exercise, baseFilename)
+	bucket := "videos"
 
-	uploadInfo, err := h.minio.PutObject(context.Background(), "videos", objectName, file, info.Size(), minio.PutObjectOptions{
+	_, err := h.minio.PutObject(context.Background(), bucket, objectKey, file, info.Size(), minio.PutObjectOptions{
 		ContentType: "video/mp4",
 	})
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	baseURL := "http://minio:9000"
-	bucketName := "videos"
-	objectURL := fmt.Sprintf("%s/%s/%s", baseURL, bucketName, uploadInfo.Key)
-	return objectURL, nil
+	return &MinioObjectRef{
+		Bucket:    bucket,
+		ObjectKey: objectKey,
+	}, nil
 }
 
-func (h *VideoHandler) saveVideoToDB(auth0ID, url, exercise string) (int64, error) {
+func (h *VideoHandler) saveVideoToDB(auth0ID string, ref *MinioObjectRef, exercise string) (*dbPb.UploadVideoResponse, error) {
 	resp, err := h.grpcDBClient.DBService.SaveUploadedVideo(context.Background(), &dbPb.UploadVideoRequest{
 		Auth0Id:      auth0ID,
-		Url:          url,
+		Bucket:       ref.Bucket,
+		ObjectKey:    ref.ObjectKey,
 		ExerciseName: exercise,
 	})
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
-	return resp.GetVideoId(), nil
+	return resp, nil
 }
 
-func (h *VideoHandler) sendVideoToAnalyze(url, exercise, auth0ID string, video_id int64) (*orPb.VideoToAnalyzeResponse, error) {
+func (h *VideoHandler) sendVideoToAnalyze(ref *MinioObjectRef, exercise, auth0ID string, videoID int64) (*orPb.VideoToAnalyzeResponse, error) {
 	resp, err := h.grpcOrchestratorClient.OrchestratorService.AnalyzeVideo(context.Background(), &orPb.VideoToAnalyzeRequest{
-		Url:          url,
+		Bucket:       ref.Bucket,
+		ObjectKey:    ref.ObjectKey,
 		ExerciseName: exercise,
 		Auth0Id:      auth0ID,
-		VideoId:      video_id,
+		VideoId:      videoID,
 	})
 	if err != nil {
 		return nil, err

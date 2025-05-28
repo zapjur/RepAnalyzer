@@ -1,7 +1,7 @@
 FROM golang:1.24.1-alpine AS build
 
 WORKDIR /app
-COPY . .
+COPY ../.. .
 
 RUN go mod tidy
 RUN go build -o orchestrator ./cmd

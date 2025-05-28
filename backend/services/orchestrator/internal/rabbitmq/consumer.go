@@ -14,7 +14,8 @@ import (
 type BarpathResult struct {
 	VideoID   string `json:"video_id"`
 	Status    string `json:"status"`
-	ResultURL string `json:"result_url,omitempty"`
+	Bucket    string `json:"bucket,omitempty"`
+	ObjectKey string `json:"object_key,omitempty"`
 	Message   string `json:"message,omitempty"`
 }
 
@@ -62,7 +63,8 @@ func ConsumeBarpathResults(ch *amqp.Channel, redisManager *redis.RedisManager, g
 				}
 				res, err := grpcClient.DBService.SaveAnalysis(context.Background(), &dbPb.VideoAnalysisRequest{
 					VideoId:   videoID,
-					ResultUrl: result.ResultURL,
+					Bucket:    result.Bucket,
+					ObjectKey: result.ObjectKey,
 					Type:      "bar_path",
 				})
 				if err != nil {

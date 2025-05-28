@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"api-gateway/internal/grpc"
+	miniohelpers "api-gateway/internal/minio"
 	"api-gateway/internal/utils"
 	dbPb "api-gateway/proto/db"
 	"context"
@@ -9,15 +10,22 @@ import (
 	"fmt"
 	"github.com/go-chi/chi/v5"
 	"github.com/minio/minio-go/v7"
+	"log"
 	"net/http"
 	"os"
 	"strings"
+	"time"
 )
 
 type VideoHandler struct {
 	minio                  *minio.Client
 	grpcDBClient           *grpc.Client
 	grpcOrchestratorClient *grpc.Client
+}
+
+type MinioObjectRef struct {
+	Bucket    string
+	ObjectKey string
 }
 
 func NewVideoHandler(minioClient *minio.Client, grpcDBClient, grpcOrchestratorClient *grpc.Client) *VideoHandler {
@@ -48,19 +56,31 @@ func (h *VideoHandler) UploadVideo(w http.ResponseWriter, r *http.Request) {
 	}
 	defer convertedFile.Close()
 
-	objectURL, err := h.uploadToMinIO(auth0IDEdited, exercise, cleanFilename, convertedFile, fileInfo)
+	minioObjectRef, err := h.uploadToMinIO(auth0IDEdited, exercise, cleanFilename, convertedFile, fileInfo)
 	if err != nil {
 		http.Error(w, "Failed to upload to MinIO: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	videoID, err := h.saveVideoToDB(auth0ID, objectURL, exercise)
+	if err = miniohelpers.WaitForObject(h.minio, minioObjectRef.Bucket, minioObjectRef.ObjectKey, 5, 1*time.Second); err != nil {
+		http.Error(w, "MinIO object not available after upload: "+err.Error(), http.StatusInternalServerError)
+		log.Printf("Uploaded to MinIO and verified presence: %s/%s", minioObjectRef.Bucket, minioObjectRef.ObjectKey)
+		return
+	}
+
+	dbResp, err := h.saveVideoToDB(auth0ID, minioObjectRef, exercise)
 	if err != nil {
 		http.Error(w, "Failed to save video info: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
+	if !dbResp.Success {
+		http.Error(w, "Failed to save video info: "+dbResp.Message, http.StatusInternalServerError)
+		return
+	}
 
-	resp, err := h.sendVideoToAnalyze(objectURL, exercise, auth0ID, videoID)
+	videoID := dbResp.VideoId
+
+	resp, err := h.sendVideoToAnalyze(minioObjectRef, exercise, auth0ID, videoID)
 	if err != nil {
 		http.Error(w, "Failed to send video for analysis: "+err.Error(), http.StatusInternalServerError)
 		return

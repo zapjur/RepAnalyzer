@@ -18,7 +18,8 @@ type DBServer struct {
 }
 
 type Video struct {
-	URL       string
+	ObjectKey string
+	Bucket    string
 	CreatedAt time.Time
 	ID        int64
 }
@@ -55,7 +56,7 @@ func (s *DBServer) GetUser(ctx context.Context, req *pb.GetUserRequest) (*pb.Get
 func (s *DBServer) SaveUploadedVideo(ctx context.Context, req *pb.UploadVideoRequest) (*pb.UploadVideoResponse, error) {
 	log.Printf("Saving video for user: %s", req.Auth0Id)
 
-	video_id, err := repository.SaveUploadedVideo(req.Auth0Id, req.Url, req.ExerciseName)
+	videoID, err := repository.SaveUploadedVideo(req.Auth0Id, req.Bucket, req.ObjectKey, req.ExerciseName)
 	if err != nil {
 		return &pb.UploadVideoResponse{
 			Success: false,
@@ -66,7 +67,7 @@ func (s *DBServer) SaveUploadedVideo(ctx context.Context, req *pb.UploadVideoReq
 	return &pb.UploadVideoResponse{
 		Success: true,
 		Message: "Video saved successfully",
-		VideoId: video_id,
+		VideoId: videoID,
 	}, nil
 }
 
@@ -101,7 +102,8 @@ func (s *DBServer) GetUserVideosByExercise(ctx context.Context, req *pb.GetUserV
 	for _, v := range videos {
 		videoInfos = append(videoInfos, &pb.VideoInfo{
 			Id:           v.ID,
-			Url:          v.URL,
+			ObjectKey:    v.ObjectKey,
+			Bucket:       v.Bucket,
 			ExerciseName: req.ExerciseName,
 			Auth0Id:      req.Auth0Id,
 			CreatedAt:    v.CreatedAt.Format(time.RFC3339),
@@ -117,7 +119,7 @@ func (s *DBServer) GetUserVideosByExercise(ctx context.Context, req *pb.GetUserV
 func (s *DBServer) SaveAnalysis(ctx context.Context, req *pb.VideoAnalysisRequest) (*pb.SaveAnalysisResponse, error) {
 	log.Printf("Saving analysis for video ID: %d", req.VideoId)
 
-	_, err := repository.SaveAnalysis(req.VideoId, req.Type, req.ResultUrl)
+	_, err := repository.SaveAnalysis(req.VideoId, req.Type, req.Bucket, req.ObjectKey)
 	if err != nil {
 		return &pb.SaveAnalysisResponse{
 			Success: false,

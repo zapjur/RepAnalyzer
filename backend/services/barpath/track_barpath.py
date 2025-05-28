@@ -13,7 +13,6 @@ import logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 
 MODEL_PATH = "runs/detect/train6/weights/best.pt"
-MINIO_BUCKET = "videos"
 MINIO_CLIENT = Minio("minio:9000", access_key="admin", secret_key="admin123", secure=False)
 
 def extract_filename(url):
@@ -22,7 +21,7 @@ def extract_filename(url):
     filename, _ = os.path.splitext(base)
     return filename
 
-def process_video(video_url, video_id, auth0_id, exercise):
+def process_video(bucket, video_url, video_id, auth0_id, exercise):
     response = requests.get(video_url, stream=True)
     temp_filename = f"/tmp/{video_id}.mp4"
     with open(temp_filename, 'wb') as f:
@@ -66,26 +65,30 @@ def process_video(video_url, video_id, auth0_id, exercise):
     cv2.destroyAllWindows()
 
     filename = extract_filename(video_url)
-    minio_path = f"{auth0_id}/{exercise}/barpath/{filename}.mp4"
-    MINIO_CLIENT.fput_object(MINIO_BUCKET, minio_path, output_file)
+    object_key = f"{auth0_id}/{exercise}/barpath/{filename}.mp4"
+    MINIO_CLIENT.fput_object(bucket, object_key, output_file)
 
-    return minio_path
+    return bucket, object_key
 
 def callback(ch, method, properties, body):
     data = json.loads(body)
     video_id = data["video_id"]
-    video_url = data["url"]
+    bucket = data["bucket"]
+    object_key = data["object_key"]
     reply_queue = data["reply_queue"]
     auth0_id = data["auth0_id"]
     exercise = data["exercise_name"]
 
+    video_url = f"http://minio:9000/{bucket}/{object_key}"
+
     print(f"Received task {video_id}")
     try:
-        minio_path = process_video(video_url, video_id, auth0_id, exercise)
+        bucket, object_key = process_video(bucket, video_url, video_id, auth0_id, exercise)
         result = {
             "video_id": video_id,
             "status": "success",
-            "result_url": minio_path
+            "bucket": bucket,
+            "object_key": object_key
         }
     except Exception as e:
         result = {
@@ -96,6 +99,7 @@ def callback(ch, method, properties, body):
 
     ch.basic_publish(exchange='', routing_key=reply_queue, body=json.dumps(result))
     ch.basic_ack(delivery_tag=method.delivery_tag)
+
 
 def connect_rabbitmq():
     credentials = pika.PlainCredentials("guest", "guest")
@@ -132,7 +136,6 @@ def wait_for_queue(connection, queue_name):
             time.sleep(3)
     raise RuntimeError(f"Queue '{queue_name}' did not appear after multiple attempts")
 
-
 connection = connect_rabbitmq()
 channel = wait_for_queue(connection, "bar_path_queue")
 
@@ -140,5 +143,3 @@ channel.basic_consume(queue="bar_path_queue", on_message_callback=callback)
 
 logging.info("Waiting for tasks...")
 channel.start_consuming()
-
-

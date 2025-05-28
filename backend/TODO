@@ -1,6 +1,7 @@
-- dodac wiecej property do tabeli videos. ciezar, powtorzenia itp.
-- grpc orchestrator -> db service
-- finish consumer w orchestrator
 - minio access service - do frontu
 - minio - access policy dla serwisow w docker-compose
+- zmienić w bazie url na bucket + key
+- refactor: zmienic logike w serwisach z url na bucket + key
+- refactor: dependency inversion principle w db service repo
 - podstrona na wynik analizy wideo
+- dodac wiecej property do tabeli videos. ciezar, powtorzenia itp.

@@ -21,14 +21,16 @@ type OrchestratorServer struct {
 }
 
 type VideoToAnalyze struct {
-	URL          string
+	Bucket       string
+	ObjectKey    string
 	ExerciseName string
 	Auth0Id      string
 	VideoId      int64
 }
 
 type TaskMessage struct {
-	URL          string `json:"url"`
+	Bucket       string `json:"bucket"`
+	ObjectKey    string `json:"object_key"`
 	ExerciseName string `json:"exercise_name"`
 	VideoID      string `json:"video_id"`
 	Auth0Id      string `json:"auth0_id"`
@@ -69,7 +71,8 @@ func (s *OrchestratorServer) AnalyzeVideo(ctx context.Context, req *anPb.VideoTo
 
 	// sending video data to appropriate queue
 	msg := TaskMessage{
-		URL:          req.Url,
+		Bucket:       req.Bucket,
+		ObjectKey:    req.ObjectKey,
 		ExerciseName: req.ExerciseName,
 		VideoID:      videoIDStr,
 		Auth0Id:      auth0IDEdited,

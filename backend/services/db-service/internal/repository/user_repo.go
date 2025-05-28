@@ -16,7 +16,8 @@ type User struct {
 }
 
 type Video struct {
-	URL       string
+	ObjectKey string
+	Bucket    string
 	CreatedAt time.Time
 	ID        int64
 }
@@ -41,7 +42,7 @@ func CreateUser(auth0ID, email string) error {
 	return err
 }
 
-func SaveUploadedVideo(auth0ID, url, exercise string) (int64, error) {
+func SaveUploadedVideo(auth0ID, bucket, objectKey, exercise string) (int64, error) {
 	db := database.GetDB()
 
 	var userID int
@@ -52,10 +53,10 @@ func SaveUploadedVideo(auth0ID, url, exercise string) (int64, error) {
 
 	var videoID int64
 	err = db.QueryRow(context.Background(), `
-		INSERT INTO videos (user_id, url, exercise_name)
-		VALUES ($1, $2, $3)
+		INSERT INTO videos (user_id, bucket, object_key, exercise_name)
+		VALUES ($1, $2, $3, $4)
 		RETURNING id
-	`, userID, url, exercise).Scan(&videoID)
+	`, userID, bucket, objectKey, exercise).Scan(&videoID)
 	if err != nil {
 		return 0, fmt.Errorf("could not insert video: %w", err)
 	}
@@ -73,7 +74,7 @@ func GetUserVideosByExercise(auth0ID, exercise string) ([]Video, error) {
 	}
 
 	rows, err := db.Query(context.Background(), `
-		SELECT url, created_at, id
+		SELECT object_key, bucket, created_at, id
 		FROM videos
 		WHERE user_id = $1 AND exercise_name = $2
 		ORDER BY created_at DESC
@@ -86,7 +87,7 @@ func GetUserVideosByExercise(auth0ID, exercise string) ([]Video, error) {
 	var videos []Video
 	for rows.Next() {
 		var v Video
-		if err = rows.Scan(&v.URL, &v.CreatedAt, &v.ID); err != nil {
+		if err = rows.Scan(&v.ObjectKey, &v.Bucket, &v.CreatedAt, &v.ID); err != nil {
 			return nil, err
 		}
 		videos = append(videos, v)
@@ -95,15 +96,15 @@ func GetUserVideosByExercise(auth0ID, exercise string) ([]Video, error) {
 	return videos, nil
 }
 
-func SaveAnalysis(videoID int64, analysisType, resultUrl string) (int64, error) {
+func SaveAnalysis(videoID int64, analysisType, bucket, objectKey string) (int64, error) {
 	db := database.GetDB()
 
 	var analysisID int64
 	err := db.QueryRow(context.Background(), `
-		INSERT INTO video_analysis (video_id, type, result_url)
-		VALUES ($1, $2, $3)
+		INSERT INTO video_analysis (video_id, type, bucket, object_key)
+		VALUES ($1, $2, $3, $4)
 		RETURNING id
-	`, videoID, analysisType, resultUrl).Scan(&analysisID)
+	`, videoID, analysisType, bucket, objectKey).Scan(&analysisID)
 	if err != nil {
 		return 0, fmt.Errorf("could not insert analysis for video_id %d: %w", videoID, err)
 	}
