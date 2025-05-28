@@ -6,10 +6,13 @@ RUN apt-get update && \
 
 WORKDIR /app
 
-COPY requirements.txt ./
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY track_barpath.py .
+COPY processing ./processing
+COPY rabbit ./rabbit
+COPY main.py .
+COPY config.py .
 COPY runs/detect/train6/weights/best.pt runs/detect/train6/weights/best.pt
 
-CMD ["python", "track_barpath.py"]
+CMD ["python", "main.py"]
