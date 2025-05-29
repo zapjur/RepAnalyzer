@@ -2,8 +2,9 @@ package repository
 
 import (
 	"context"
-	"db-service/internal/database"
+	"errors"
 	"fmt"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -22,13 +23,22 @@ type Video struct {
 	ID        int64
 }
 
-func GetUserByAuth0ID(auth0ID string) (*User, error) {
-	db := database.GetDB()
-	row := db.QueryRow(context.Background(), "SELECT id, auth0_id, email FROM users WHERE auth0_id = $1", auth0ID)
+type Repository struct {
+	DB *pgxpool.Pool
+}
+
+func NewRepository(db *pgxpool.Pool) *Repository {
+	return &Repository{
+		DB: db,
+	}
+}
+
+func (r *Repository) GetUserByAuth0ID(auth0ID string) (*User, error) {
+	row := r.DB.QueryRow(context.Background(), "SELECT id, auth0_id, email FROM users WHERE auth0_id = $1", auth0ID)
 
 	var user User
 	err := row.Scan(&user.ID, &user.Auth0ID, &user.Email)
-	if err == pgx.ErrNoRows {
+	if errors.Is(err, pgx.ErrNoRows) {
 		return nil, nil
 	} else if err != nil {
 		return nil, err
@@ -36,23 +46,20 @@ func GetUserByAuth0ID(auth0ID string) (*User, error) {
 	return &user, nil
 }
 
-func CreateUser(auth0ID, email string) error {
-	db := database.GetDB()
-	_, err := db.Exec(context.Background(), "INSERT INTO users (auth0_id, email) VALUES ($1, $2)", auth0ID, email)
+func (r *Repository) CreateUser(auth0ID, email string) error {
+	_, err := r.DB.Exec(context.Background(), "INSERT INTO users (auth0_id, email) VALUES ($1, $2)", auth0ID, email)
 	return err
 }
 
-func SaveUploadedVideo(auth0ID, bucket, objectKey, exercise string) (int64, error) {
-	db := database.GetDB()
-
+func (r *Repository) SaveUploadedVideo(auth0ID, bucket, objectKey, exercise string) (int64, error) {
 	var userID int
-	err := db.QueryRow(context.Background(), "SELECT id FROM users WHERE auth0_id = $1", auth0ID).Scan(&userID)
+	err := r.DB.QueryRow(context.Background(), "SELECT id FROM users WHERE auth0_id = $1", auth0ID).Scan(&userID)
 	if err != nil {
 		return 0, fmt.Errorf("could not find user with auth0_id %s: %w", auth0ID, err)
 	}
 
 	var videoID int64
-	err = db.QueryRow(context.Background(), `
+	err = r.DB.QueryRow(context.Background(), `
 		INSERT INTO videos (user_id, bucket, object_key, exercise_name)
 		VALUES ($1, $2, $3, $4)
 		RETURNING id
@@ -64,16 +71,14 @@ func SaveUploadedVideo(auth0ID, bucket, objectKey, exercise string) (int64, erro
 	return videoID, nil
 }
 
-func GetUserVideosByExercise(auth0ID, exercise string) ([]Video, error) {
-	db := database.GetDB()
-
+func (r *Repository) GetUserVideosByExercise(auth0ID, exercise string) ([]Video, error) {
 	var userID int
-	err := db.QueryRow(context.Background(), "SELECT id FROM users WHERE auth0_id = $1", auth0ID).Scan(&userID)
+	err := r.DB.QueryRow(context.Background(), "SELECT id FROM users WHERE auth0_id = $1", auth0ID).Scan(&userID)
 	if err != nil {
 		return nil, fmt.Errorf("could not find user with auth0_id %s: %w", auth0ID, err)
 	}
 
-	rows, err := db.Query(context.Background(), `
+	rows, err := r.DB.Query(context.Background(), `
 		SELECT object_key, bucket, created_at, id
 		FROM videos
 		WHERE user_id = $1 AND exercise_name = $2
@@ -96,11 +101,9 @@ func GetUserVideosByExercise(auth0ID, exercise string) ([]Video, error) {
 	return videos, nil
 }
 
-func SaveAnalysis(videoID int64, analysisType, bucket, objectKey string) (int64, error) {
-	db := database.GetDB()
-
+func (r *Repository) SaveAnalysis(videoID int64, analysisType, bucket, objectKey string) (int64, error) {
 	var analysisID int64
-	err := db.QueryRow(context.Background(), `
+	err := r.DB.QueryRow(context.Background(), `
 		INSERT INTO video_analysis (video_id, type, bucket, object_key)
 		VALUES ($1, $2, $3, $4)
 		RETURNING id

@@ -13,5 +13,6 @@ func main() {
 	database.ConnectDB(cfg)
 	defer database.CloseDB()
 
-	server.StartGRPCServer(cfg)
+	db := database.GetDB()
+	server.StartGRPCServer(cfg, db)
 }

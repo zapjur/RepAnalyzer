@@ -4,6 +4,7 @@ import (
 	"context"
 	"db-service/internal/config"
 	"db-service/internal/repository"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"log"
 	"net"
 	"time"
@@ -15,6 +16,7 @@ import (
 
 type DBServer struct {
 	pb.UnimplementedDBServiceServer
+	repo *repository.Repository
 }
 
 type Video struct {
@@ -27,7 +29,7 @@ type Video struct {
 func (s *DBServer) GetUser(ctx context.Context, req *pb.GetUserRequest) (*pb.GetUserResponse, error) {
 	log.Printf("Checking user: %s", req.Auth0Id)
 
-	user, err := repository.GetUserByAuth0ID(req.Auth0Id)
+	user, err := s.repo.GetUserByAuth0ID(req.Auth0Id)
 	if err != nil {
 		return &pb.GetUserResponse{
 			Success: false,
@@ -37,7 +39,7 @@ func (s *DBServer) GetUser(ctx context.Context, req *pb.GetUserRequest) (*pb.Get
 
 	if user == nil {
 		log.Println("User not found, creating new user...")
-		err := repository.CreateUser(req.Auth0Id, req.Email)
+		err := s.repo.CreateUser(req.Auth0Id, req.Email)
 		if err != nil {
 			return &pb.GetUserResponse{
 				Success: false,
@@ -56,7 +58,7 @@ func (s *DBServer) GetUser(ctx context.Context, req *pb.GetUserRequest) (*pb.Get
 func (s *DBServer) SaveUploadedVideo(ctx context.Context, req *pb.UploadVideoRequest) (*pb.UploadVideoResponse, error) {
 	log.Printf("Saving video for user: %s", req.Auth0Id)
 
-	videoID, err := repository.SaveUploadedVideo(req.Auth0Id, req.Bucket, req.ObjectKey, req.ExerciseName)
+	videoID, err := s.repo.SaveUploadedVideo(req.Auth0Id, req.Bucket, req.ObjectKey, req.ExerciseName)
 	if err != nil {
 		return &pb.UploadVideoResponse{
 			Success: false,
@@ -71,14 +73,17 @@ func (s *DBServer) SaveUploadedVideo(ctx context.Context, req *pb.UploadVideoReq
 	}, nil
 }
 
-func StartGRPCServer(cfg *config.Config) {
+func StartGRPCServer(cfg *config.Config, db *pgxpool.Pool) {
+	repo := repository.NewRepository(db)
+	server := &DBServer{repo: repo}
+
+	grpcServer := grpc.NewServer()
+	pb.RegisterDBServiceServer(grpcServer, server)
+
 	listener, err := net.Listen("tcp", ":"+cfg.GRPCPort)
 	if err != nil {
 		log.Fatalf("Failed to listen: %v", err)
 	}
-
-	grpcServer := grpc.NewServer()
-	pb.RegisterDBServiceServer(grpcServer, &DBServer{})
 
 	log.Printf("DB Service running on port :%s", cfg.GRPCPort)
 
@@ -90,7 +95,7 @@ func StartGRPCServer(cfg *config.Config) {
 func (s *DBServer) GetUserVideosByExercise(ctx context.Context, req *pb.GetUserVideosByExerciseRequest) (*pb.GetUserVideosByExerciseResponse, error) {
 	log.Printf("Getting videos for user: %s and exercise: %s", req.Auth0Id, req.ExerciseName)
 
-	videos, err := repository.GetUserVideosByExercise(req.Auth0Id, req.ExerciseName)
+	videos, err := s.repo.GetUserVideosByExercise(req.Auth0Id, req.ExerciseName)
 	if err != nil {
 		return &pb.GetUserVideosByExerciseResponse{
 			Success: false,
@@ -119,7 +124,7 @@ func (s *DBServer) GetUserVideosByExercise(ctx context.Context, req *pb.GetUserV
 func (s *DBServer) SaveAnalysis(ctx context.Context, req *pb.VideoAnalysisRequest) (*pb.SaveAnalysisResponse, error) {
 	log.Printf("Saving analysis for video ID: %d", req.VideoId)
 
-	_, err := repository.SaveAnalysis(req.VideoId, req.Type, req.Bucket, req.ObjectKey)
+	_, err := s.repo.SaveAnalysis(req.VideoId, req.Type, req.Bucket, req.ObjectKey)
 	if err != nil {
 		return &pb.SaveAnalysisResponse{
 			Success: false,
