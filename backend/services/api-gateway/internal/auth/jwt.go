@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"context"
 	"crypto/rsa"
 	"encoding/base64"
 	"encoding/json"
@@ -20,6 +21,15 @@ type Jwks struct {
 		N   string `json:"n"`
 		E   string `json:"e"`
 	} `json:"keys"`
+}
+
+type ctxKey string
+
+var userInfoKey ctxKey = "userInfo"
+
+type UserInfo struct {
+	Auth0ID string
+	Email   string
 }
 
 var (
@@ -111,7 +121,13 @@ func JwtMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (any, error) {
+		claims := struct {
+			Sub   string `json:"sub"`
+			Email string `json:"email"`
+			jwt.RegisteredClaims
+		}{}
+
+		token, err := jwt.ParseWithClaims(tokenString, &claims, func(token *jwt.Token) (any, error) {
 			if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
 				return nil, errors.New("invalid token signature")
 			}
@@ -124,8 +140,29 @@ func JwtMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		log.Println("JWT verification succeeded")
+		if claims.Sub == "" || claims.Email == "" {
+			http.Error(w, "Invalid token: missing claims", http.StatusUnauthorized)
+			return
+		}
+
+		user := &UserInfo{
+			Auth0ID: claims.Sub,
+			Email:   claims.Email,
+		}
+
+		log.Println("JWT verified successfully for user:", user.Auth0ID)
+
+		ctx := context.WithValue(r.Context(), userInfoKey, user)
+		r = r.WithContext(ctx)
 
 		next.ServeHTTP(w, r)
 	})
+}
+
+func GetUserInfo(ctx context.Context) (*UserInfo, error) {
+	user, ok := ctx.Value(userInfoKey).(*UserInfo)
+	if !ok || user == nil {
+		return nil, errors.New("user info not found in context")
+	}
+	return user, nil
 }
