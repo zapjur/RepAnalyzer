@@ -22,22 +22,22 @@ const Dashboard: React.FC = () => {
                 }
             };
             init();
-            fetchUser(user.sub);
+            fetchUser();
             console.log("Is Authenticated:", isAuthenticated);
             console.log("User:", user);
         }
     }, [isAuthenticated, getAccessTokenSilently, user]);
 
-    const fetchUser = async (auth0Id: string) => {
+    const fetchUser = async () => {
         try {
-            const response = await apiClient.get(`/users/${auth0Id}`);
+            const response = await apiClient.get(`/users`);
             console.log('User data:', response.data);
         } catch (error) {
             console.error('Failed to fetch user:', error);
         }
     };
 
-    const handleUpload = async (auth0Id: string) => {
+    const handleUpload = async () => {
         if (!selectedFile) return alert("Please select a file first!");
 
         const formData = new FormData();
@@ -45,7 +45,7 @@ const Dashboard: React.FC = () => {
         formData.append("exercise", selectedExercise);
 
         try {
-            const response = await apiClient.post(`/upload/${auth0Id}`, formData, {
+            const response = await apiClient.post(`/upload`, formData, {
                 headers: {
                     "Content-Type": "multipart/form-data",
                 },
@@ -139,7 +139,7 @@ const Dashboard: React.FC = () => {
                                 Cancel
                             </button>
                             <button
-                                onClick={() => handleUpload(user?.sub || "")}
+                                onClick={() => handleUpload()}
                                 className="px-4 py-2 bg-yellow-400 rounded hover:bg-yellow-500"
                             >
                                 Upload

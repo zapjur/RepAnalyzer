@@ -26,12 +26,12 @@ export const useVideos = () => {
 export const VideosProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [videos, setVideos] = useState<VideosMap>({});
 
-    const fetchVideos = async (exercise: string, auth0Id: string) => {
+    const fetchVideos = async (exercise: string) => {
         console.log(`Fetching videos for ${exercise}...`);
 
         try {
             const encodedExercise = encodeURIComponent(exercise);
-            const res = await apiClient.get(`/videos/${auth0Id}/${encodedExercise}`);
+            const res = await apiClient.get(`/videos/${encodedExercise}`);
             setVideos((prev) => ({ ...prev, [exercise]: res.data }));
         } catch (err) {
             console.error(`Error fetching ${exercise} videos:`, err);
