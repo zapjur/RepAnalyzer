@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"api-gateway/internal/auth"
 	"api-gateway/internal/grpc"
 	miniohelpers "api-gateway/internal/minio"
 	"api-gateway/internal/utils"
@@ -33,13 +34,19 @@ func NewVideoHandler(minioClient *minio.Client, grpcDBClient, grpcOrchestratorCl
 }
 
 func (h *VideoHandler) UploadVideo(w http.ResponseWriter, r *http.Request) {
-	auth0ID, exercise, cleanFilename, tmpInput, err := h.parseAndPrepareFormData(w, r)
+	exercise, cleanFilename, tmpInput, err := h.parseAndPrepareFormData(w, r)
 	if err != nil {
 		return
 	}
 	defer os.Remove(tmpInput.Name())
 	defer tmpInput.Close()
 
+	user, err := auth.GetUserInfo(r.Context())
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+	auth0ID := user.Auth0ID
 	auth0IDEdited := strings.ReplaceAll(auth0ID, "|", "_")
 
 	convertedPath, err := utils.ConvertToMP4(tmpInput.Name())
@@ -94,9 +101,9 @@ func (h *VideoHandler) UploadVideo(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *VideoHandler) GetVideosByExercise(w http.ResponseWriter, r *http.Request) {
-	auth0ID := chi.URLParam(r, "auth0ID")
-	if auth0ID == "" {
-		http.Error(w, "Missing user ID in path", http.StatusBadRequest)
+	user, err := auth.GetUserInfo(r.Context())
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 
@@ -107,7 +114,7 @@ func (h *VideoHandler) GetVideosByExercise(w http.ResponseWriter, r *http.Reques
 	}
 
 	response, err := h.grpcDBClient.DBService.GetUserVideosByExercise(context.Background(), &dbPb.GetUserVideosByExerciseRequest{
-		Auth0Id:      auth0ID,
+		Auth0Id:      user.Auth0ID,
 		ExerciseName: exercise,
 	})
 	if err != nil {

@@ -1,4 +1,3 @@
-- refactor: usunac auth0id z endpointow. pobierac z jwt
 - minio access service - do frontu
 - minio - access policy dla serwisow w docker-compose
 - podstrona na wynik analizy wideo

@@ -55,9 +55,9 @@ func main() {
 	r.Use(corsMiddleware)
 	r.Use(auth.JwtMiddleware)
 
-	r.Get("/users/{auth0ID}", userHandler.GetUser)
-	r.Post("/upload/{auth0ID}", videoHandler.UploadVideo)
-	r.Get("/videos/{auth0ID}/{exercise}", videoHandler.GetVideosByExercise)
+	r.Get("/users", userHandler.GetUser)
+	r.Post("/upload", videoHandler.UploadVideo)
+	r.Get("/videos/{exercise}", videoHandler.GetVideosByExercise)
 
 	log.Printf("API Gateway started on port %s", cfg.HTTPPort)
 	if err = http.ListenAndServe(":"+cfg.HTTPPort, r); err != nil {

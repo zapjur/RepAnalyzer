@@ -5,7 +5,6 @@ import (
 	dbPb "api-gateway/proto/db"
 	"context"
 	"fmt"
-	"github.com/go-chi/chi/v5"
 	"github.com/minio/minio-go/v7"
 	"io"
 	"net/http"
@@ -14,7 +13,7 @@ import (
 	"strings"
 )
 
-func (h *VideoHandler) parseAndPrepareFormData(w http.ResponseWriter, r *http.Request) (auth0ID, exercise, cleanFilename string, tmpFile *os.File, err error) {
+func (h *VideoHandler) parseAndPrepareFormData(w http.ResponseWriter, r *http.Request) (exercise, cleanFilename string, tmpFile *os.File, err error) {
 	err = r.ParseMultipartForm(100 << 20) // 100 MB
 	if err != nil {
 		http.Error(w, "Could not parse multipart form", http.StatusBadRequest)
@@ -37,12 +36,6 @@ func (h *VideoHandler) parseAndPrepareFormData(w http.ResponseWriter, r *http.Re
 	}
 	exercise = strings.ReplaceAll(exercise, " ", "_")
 
-	auth0ID = chi.URLParam(r, "auth0ID")
-	if auth0ID == "" {
-		http.Error(w, "Missing user ID in path", http.StatusBadRequest)
-		return
-	}
-
 	tmpFile, err = os.CreateTemp("", "upload-*"+filepath.Ext(cleanFilename))
 	if err != nil {
 		http.Error(w, "Failed to create temp file", http.StatusInternalServerError)
@@ -56,7 +49,7 @@ func (h *VideoHandler) parseAndPrepareFormData(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	return auth0ID, exercise, cleanFilename, tmpFile, nil
+	return exercise, cleanFilename, tmpFile, nil
 }
 
 func openConvertedFile(path string) (*os.File, os.FileInfo, error) {
