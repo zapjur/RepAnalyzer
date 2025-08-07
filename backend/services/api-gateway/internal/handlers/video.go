@@ -155,6 +155,7 @@ func (h *VideoHandler) GetVideosByExercise(w http.ResponseWriter, r *http.Reques
 				CreatedAt:    vids[i].CreatedAt,
 				Url:          urlStr,
 			}
+			log.Println(out)
 		}()
 	}
 	wg.Wait()
@@ -166,7 +167,7 @@ func (h *VideoHandler) GetVideosByExercise(w http.ResponseWriter, r *http.Reques
 func fetchPresignedURL(ctx context.Context, authorization string, videoID int64) string {
 	req, err := http.NewRequestWithContext(ctx,
 		http.MethodGet,
-		fmt.Sprintf("%s/access/video/%d", "access-service:8082", videoID),
+		fmt.Sprintf("%s/access/video/%d", "http://access-service:8082", videoID),
 		nil,
 	)
 	if err != nil {

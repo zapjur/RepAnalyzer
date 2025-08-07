@@ -44,7 +44,6 @@ services:
   access-service:
     build: ./services/access-service
     container_name: access-service
-    ports: ["8082:8082"]
     depends_on: [db-service, api-gateway, minio, minio-bootstrap]
     environment:
       AUTH0_DOMAIN: ${AUTH0_DOMAIN}

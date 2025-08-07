@@ -15,5 +15,4 @@ RUN apt-get update && \
 WORKDIR /app
 COPY --from=build /app/access-service /app/access-service
 
-EXPOSE 8082
 CMD ["/app/access-service"]
