@@ -1,24 +1,25 @@
 package minio
 
 import (
+	"context"
+	"github.com/minio/minio-go/v7"
+	"github.com/minio/minio-go/v7/pkg/credentials"
 	"log"
+	"net/url"
 	"os"
 	"strconv"
 	"time"
-
-	"github.com/minio/minio-go/v7"
-	"github.com/minio/minio-go/v7/pkg/credentials"
 )
 
 type Client struct {
-	Minio     *minio.Client
+	client    *minio.Client
 	endpoint  string
 	accessKey string
 	secretKey string
 	useSSL    bool
 }
 
-func NewMinioClient() *Client {
+func NewClient() *Client {
 	endpoint := getenvDefault("MINIO_ENDPOINT")
 	accessKey := getenvDefault("MINIO_ACCESS_KEY")
 	secretKey := getenvDefault("MINIO_SECRET_KEY")
@@ -30,28 +31,33 @@ func NewMinioClient() *Client {
 		secretKey: secretKey,
 		useSSL:    useSSL,
 	}
-
 	c.connectWithRetry()
-
 	return c
 }
 
 func (c *Client) connectWithRetry() {
 	var err error
 	for {
-		c.Minio, err = minio.New(c.endpoint, &minio.Options{
+		c.client, err = minio.New(c.endpoint, &minio.Options{
 			Creds:  credentials.NewStaticV4(c.accessKey, c.secretKey, ""),
 			Secure: c.useSSL,
 		})
-
 		if err == nil {
-			log.Println("Successfully connected to MinIO")
+			log.Println("Connected to MinIO")
 			break
 		}
-
-		log.Printf("Failed to connect to MinIO (%v). Retrying in 5 seconds...\n", err)
+		log.Printf("Failed to connect to MinIO: %v. Retrying in 5s...\n", err)
 		time.Sleep(5 * time.Second)
 	}
+}
+
+func (c *Client) GeneratePresignedURL(ctx context.Context, bucket, objectKey string) (string, error) {
+	reqParams := make(url.Values)
+	presignedUrl, err := c.client.PresignedGetObject(ctx, bucket, objectKey, 10*time.Minute, reqParams)
+	if err != nil {
+		return "", err
+	}
+	return presignedUrl.String(), nil
 }
 
 func getenvDefault(key string) string {

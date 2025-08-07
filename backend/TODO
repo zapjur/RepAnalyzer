@@ -1,4 +1,3 @@
-- minio access service - do frontu
-- minio - access policy dla serwisow w docker-compose
 - podstrona na wynik analizy wideo
+- .env do access-service improveconfig etc
 - dodac wiecej property do tabeli videos. ciezar, powtorzenia itp.

@@ -23,6 +23,7 @@ const (
 	DBService_SaveUploadedVideo_FullMethodName       = "/db.DBService/SaveUploadedVideo"
 	DBService_GetUserVideosByExercise_FullMethodName = "/db.DBService/GetUserVideosByExercise"
 	DBService_SaveAnalysis_FullMethodName            = "/db.DBService/SaveAnalysis"
+	DBService_CheckOwnership_FullMethodName          = "/db.DBService/CheckOwnership"
 )
 
 // DBServiceClient is the client API for DBService service.
@@ -33,6 +34,7 @@ type DBServiceClient interface {
 	SaveUploadedVideo(ctx context.Context, in *UploadVideoRequest, opts ...grpc.CallOption) (*UploadVideoResponse, error)
 	GetUserVideosByExercise(ctx context.Context, in *GetUserVideosByExerciseRequest, opts ...grpc.CallOption) (*GetUserVideosByExerciseResponse, error)
 	SaveAnalysis(ctx context.Context, in *VideoAnalysisRequest, opts ...grpc.CallOption) (*SaveAnalysisResponse, error)
+	CheckOwnership(ctx context.Context, in *CheckOwnershipRequest, opts ...grpc.CallOption) (*CheckOwnershipResponse, error)
 }
 
 type dBServiceClient struct {
@@ -83,6 +85,16 @@ func (c *dBServiceClient) SaveAnalysis(ctx context.Context, in *VideoAnalysisReq
 	return out, nil
 }
 
+func (c *dBServiceClient) CheckOwnership(ctx context.Context, in *CheckOwnershipRequest, opts ...grpc.CallOption) (*CheckOwnershipResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CheckOwnershipResponse)
+	err := c.cc.Invoke(ctx, DBService_CheckOwnership_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // DBServiceServer is the server API for DBService service.
 // All implementations must embed UnimplementedDBServiceServer
 // for forward compatibility.
@@ -91,6 +103,7 @@ type DBServiceServer interface {
 	SaveUploadedVideo(context.Context, *UploadVideoRequest) (*UploadVideoResponse, error)
 	GetUserVideosByExercise(context.Context, *GetUserVideosByExerciseRequest) (*GetUserVideosByExerciseResponse, error)
 	SaveAnalysis(context.Context, *VideoAnalysisRequest) (*SaveAnalysisResponse, error)
+	CheckOwnership(context.Context, *CheckOwnershipRequest) (*CheckOwnershipResponse, error)
 	mustEmbedUnimplementedDBServiceServer()
 }
 
@@ -112,6 +125,9 @@ func (UnimplementedDBServiceServer) GetUserVideosByExercise(context.Context, *Ge
 }
 func (UnimplementedDBServiceServer) SaveAnalysis(context.Context, *VideoAnalysisRequest) (*SaveAnalysisResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SaveAnalysis not implemented")
+}
+func (UnimplementedDBServiceServer) CheckOwnership(context.Context, *CheckOwnershipRequest) (*CheckOwnershipResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CheckOwnership not implemented")
 }
 func (UnimplementedDBServiceServer) mustEmbedUnimplementedDBServiceServer() {}
 func (UnimplementedDBServiceServer) testEmbeddedByValue()                   {}
@@ -206,6 +222,24 @@ func _DBService_SaveAnalysis_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _DBService_CheckOwnership_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CheckOwnershipRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DBServiceServer).CheckOwnership(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: DBService_CheckOwnership_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DBServiceServer).CheckOwnership(ctx, req.(*CheckOwnershipRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // DBService_ServiceDesc is the grpc.ServiceDesc for DBService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -228,6 +262,10 @@ var DBService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SaveAnalysis",
 			Handler:    _DBService_SaveAnalysis_Handler,
+		},
+		{
+			MethodName: "CheckOwnership",
+			Handler:    _DBService_CheckOwnership_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

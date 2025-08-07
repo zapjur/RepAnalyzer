@@ -5,6 +5,8 @@ import (
 	"db-service/internal/config"
 	"db-service/internal/repository"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"log"
 	"net"
 	"time"
@@ -135,5 +137,31 @@ func (s *DBServer) SaveAnalysis(ctx context.Context, req *pb.VideoAnalysisReques
 	return &pb.SaveAnalysisResponse{
 		Success: true,
 		Message: "Analysis saved successfully",
+	}, nil
+}
+
+func (s *DBServer) CheckOwnership(ctx context.Context, req *pb.CheckOwnershipRequest) (*pb.CheckOwnershipResponse, error) {
+	video, err := s.repo.GetVideoByID(req.VideoId)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to fetch video: %v", err)
+	}
+
+	user, err := s.repo.GetUserByAuth0ID(req.Auth0Id)
+	if err != nil {
+		return &pb.CheckOwnershipResponse{
+				Owned:     false,
+				Message:   "Database error: " + err.Error(),
+				ObjectKey: "",
+				Bucket:    "",
+			},
+			status.Errorf(codes.Internal, "failed to fetch user: %v", err)
+	}
+
+	owned := video.UserID == user.ID
+	return &pb.CheckOwnershipResponse{
+		Owned:     owned,
+		Message:   "Success",
+		ObjectKey: video.ObjectKey,
+		Bucket:    video.Bucket,
 	}, nil
 }

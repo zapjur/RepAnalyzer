@@ -569,6 +569,126 @@ func (x *GetUserVideosByExerciseResponse) GetMessage() string {
 	return ""
 }
 
+type CheckOwnershipRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Auth0Id       string                 `protobuf:"bytes,1,opt,name=auth0_id,json=auth0Id,proto3" json:"auth0_id,omitempty"`
+	VideoId       int64                  `protobuf:"varint,2,opt,name=video_id,json=videoId,proto3" json:"video_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CheckOwnershipRequest) Reset() {
+	*x = CheckOwnershipRequest{}
+	mi := &file_proto_db_db_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CheckOwnershipRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CheckOwnershipRequest) ProtoMessage() {}
+
+func (x *CheckOwnershipRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_db_db_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CheckOwnershipRequest.ProtoReflect.Descriptor instead.
+func (*CheckOwnershipRequest) Descriptor() ([]byte, []int) {
+	return file_proto_db_db_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *CheckOwnershipRequest) GetAuth0Id() string {
+	if x != nil {
+		return x.Auth0Id
+	}
+	return ""
+}
+
+func (x *CheckOwnershipRequest) GetVideoId() int64 {
+	if x != nil {
+		return x.VideoId
+	}
+	return 0
+}
+
+type CheckOwnershipResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Owned         bool                   `protobuf:"varint,1,opt,name=owned,proto3" json:"owned,omitempty"`
+	Message       string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
+	ObjectKey     string                 `protobuf:"bytes,3,opt,name=object_key,json=objectKey,proto3" json:"object_key,omitempty"`
+	Bucket        string                 `protobuf:"bytes,4,opt,name=bucket,proto3" json:"bucket,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CheckOwnershipResponse) Reset() {
+	*x = CheckOwnershipResponse{}
+	mi := &file_proto_db_db_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CheckOwnershipResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CheckOwnershipResponse) ProtoMessage() {}
+
+func (x *CheckOwnershipResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_db_db_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CheckOwnershipResponse.ProtoReflect.Descriptor instead.
+func (*CheckOwnershipResponse) Descriptor() ([]byte, []int) {
+	return file_proto_db_db_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *CheckOwnershipResponse) GetOwned() bool {
+	if x != nil {
+		return x.Owned
+	}
+	return false
+}
+
+func (x *CheckOwnershipResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *CheckOwnershipResponse) GetObjectKey() string {
+	if x != nil {
+		return x.ObjectKey
+	}
+	return ""
+}
+
+func (x *CheckOwnershipResponse) GetBucket() string {
+	if x != nil {
+		return x.Bucket
+	}
+	return ""
+}
+
 var File_proto_db_db_proto protoreflect.FileDescriptor
 
 var file_proto_db_db_proto_rawDesc = string([]byte{
@@ -635,7 +755,20 @@ var file_proto_db_db_proto_rawDesc = string([]byte{
 	0x18, 0x0a, 0x07, 0x73, 0x75, 0x63, 0x63, 0x65, 0x73, 0x73, 0x18, 0x02, 0x20, 0x01, 0x28, 0x08,
 	0x52, 0x07, 0x73, 0x75, 0x63, 0x63, 0x65, 0x73, 0x73, 0x12, 0x18, 0x0a, 0x07, 0x6d, 0x65, 0x73,
 	0x73, 0x61, 0x67, 0x65, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x6d, 0x65, 0x73, 0x73,
-	0x61, 0x67, 0x65, 0x32, 0xad, 0x02, 0x0a, 0x09, 0x44, 0x42, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63,
+	0x61, 0x67, 0x65, 0x22, 0x4d, 0x0a, 0x15, 0x43, 0x68, 0x65, 0x63, 0x6b, 0x4f, 0x77, 0x6e, 0x65,
+	0x72, 0x73, 0x68, 0x69, 0x70, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x19, 0x0a, 0x08,
+	0x61, 0x75, 0x74, 0x68, 0x30, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07,
+	0x61, 0x75, 0x74, 0x68, 0x30, 0x49, 0x64, 0x12, 0x19, 0x0a, 0x08, 0x76, 0x69, 0x64, 0x65, 0x6f,
+	0x5f, 0x69, 0x64, 0x18, 0x02, 0x20, 0x01, 0x28, 0x03, 0x52, 0x07, 0x76, 0x69, 0x64, 0x65, 0x6f,
+	0x49, 0x64, 0x22, 0x7f, 0x0a, 0x16, 0x43, 0x68, 0x65, 0x63, 0x6b, 0x4f, 0x77, 0x6e, 0x65, 0x72,
+	0x73, 0x68, 0x69, 0x70, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x14, 0x0a, 0x05,
+	0x6f, 0x77, 0x6e, 0x65, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x08, 0x52, 0x05, 0x6f, 0x77, 0x6e,
+	0x65, 0x64, 0x12, 0x18, 0x0a, 0x07, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x18, 0x02, 0x20,
+	0x01, 0x28, 0x09, 0x52, 0x07, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x12, 0x1d, 0x0a, 0x0a,
+	0x6f, 0x62, 0x6a, 0x65, 0x63, 0x74, 0x5f, 0x6b, 0x65, 0x79, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09,
+	0x52, 0x09, 0x6f, 0x62, 0x6a, 0x65, 0x63, 0x74, 0x4b, 0x65, 0x79, 0x12, 0x16, 0x0a, 0x06, 0x62,
+	0x75, 0x63, 0x6b, 0x65, 0x74, 0x18, 0x04, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x62, 0x75, 0x63,
+	0x6b, 0x65, 0x74, 0x32, 0xf6, 0x02, 0x0a, 0x09, 0x44, 0x42, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63,
 	0x65, 0x12, 0x32, 0x0a, 0x07, 0x47, 0x65, 0x74, 0x55, 0x73, 0x65, 0x72, 0x12, 0x12, 0x2e, 0x64,
 	0x62, 0x2e, 0x47, 0x65, 0x74, 0x55, 0x73, 0x65, 0x72, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
 	0x1a, 0x13, 0x2e, 0x64, 0x62, 0x2e, 0x47, 0x65, 0x74, 0x55, 0x73, 0x65, 0x72, 0x52, 0x65, 0x73,
@@ -654,8 +787,13 @@ var file_proto_db_db_proto_rawDesc = string([]byte{
 	0x18, 0x2e, 0x64, 0x62, 0x2e, 0x56, 0x69, 0x64, 0x65, 0x6f, 0x41, 0x6e, 0x61, 0x6c, 0x79, 0x73,
 	0x69, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x18, 0x2e, 0x64, 0x62, 0x2e, 0x53,
 	0x61, 0x76, 0x65, 0x41, 0x6e, 0x61, 0x6c, 0x79, 0x73, 0x69, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f,
-	0x6e, 0x73, 0x65, 0x42, 0x0c, 0x5a, 0x0a, 0x2e, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x3b, 0x64,
-	0x62, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x6e, 0x73, 0x65, 0x12, 0x47, 0x0a, 0x0e, 0x43, 0x68, 0x65, 0x63, 0x6b, 0x4f, 0x77, 0x6e, 0x65,
+	0x72, 0x73, 0x68, 0x69, 0x70, 0x12, 0x19, 0x2e, 0x64, 0x62, 0x2e, 0x43, 0x68, 0x65, 0x63, 0x6b,
+	0x4f, 0x77, 0x6e, 0x65, 0x72, 0x73, 0x68, 0x69, 0x70, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
+	0x1a, 0x1a, 0x2e, 0x64, 0x62, 0x2e, 0x43, 0x68, 0x65, 0x63, 0x6b, 0x4f, 0x77, 0x6e, 0x65, 0x72,
+	0x73, 0x68, 0x69, 0x70, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x42, 0x0c, 0x5a, 0x0a,
+	0x2e, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x3b, 0x64, 0x62, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74,
+	0x6f, 0x33,
 })
 
 var (
@@ -670,7 +808,7 @@ func file_proto_db_db_proto_rawDescGZIP() []byte {
 	return file_proto_db_db_proto_rawDescData
 }
 
-var file_proto_db_db_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
+var file_proto_db_db_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_proto_db_db_proto_goTypes = []any{
 	(*GetUserRequest)(nil),                  // 0: db.GetUserRequest
 	(*GetUserResponse)(nil),                 // 1: db.GetUserResponse
@@ -681,22 +819,26 @@ var file_proto_db_db_proto_goTypes = []any{
 	(*VideoAnalysisRequest)(nil),            // 6: db.VideoAnalysisRequest
 	(*SaveAnalysisResponse)(nil),            // 7: db.SaveAnalysisResponse
 	(*GetUserVideosByExerciseResponse)(nil), // 8: db.GetUserVideosByExerciseResponse
+	(*CheckOwnershipRequest)(nil),           // 9: db.CheckOwnershipRequest
+	(*CheckOwnershipResponse)(nil),          // 10: db.CheckOwnershipResponse
 }
 var file_proto_db_db_proto_depIdxs = []int32{
-	5, // 0: db.GetUserVideosByExerciseResponse.videos:type_name -> db.VideoInfo
-	0, // 1: db.DBService.GetUser:input_type -> db.GetUserRequest
-	2, // 2: db.DBService.SaveUploadedVideo:input_type -> db.UploadVideoRequest
-	4, // 3: db.DBService.GetUserVideosByExercise:input_type -> db.GetUserVideosByExerciseRequest
-	6, // 4: db.DBService.SaveAnalysis:input_type -> db.VideoAnalysisRequest
-	1, // 5: db.DBService.GetUser:output_type -> db.GetUserResponse
-	3, // 6: db.DBService.SaveUploadedVideo:output_type -> db.UploadVideoResponse
-	8, // 7: db.DBService.GetUserVideosByExercise:output_type -> db.GetUserVideosByExerciseResponse
-	7, // 8: db.DBService.SaveAnalysis:output_type -> db.SaveAnalysisResponse
-	5, // [5:9] is the sub-list for method output_type
-	1, // [1:5] is the sub-list for method input_type
-	1, // [1:1] is the sub-list for extension type_name
-	1, // [1:1] is the sub-list for extension extendee
-	0, // [0:1] is the sub-list for field type_name
+	5,  // 0: db.GetUserVideosByExerciseResponse.videos:type_name -> db.VideoInfo
+	0,  // 1: db.DBService.GetUser:input_type -> db.GetUserRequest
+	2,  // 2: db.DBService.SaveUploadedVideo:input_type -> db.UploadVideoRequest
+	4,  // 3: db.DBService.GetUserVideosByExercise:input_type -> db.GetUserVideosByExerciseRequest
+	6,  // 4: db.DBService.SaveAnalysis:input_type -> db.VideoAnalysisRequest
+	9,  // 5: db.DBService.CheckOwnership:input_type -> db.CheckOwnershipRequest
+	1,  // 6: db.DBService.GetUser:output_type -> db.GetUserResponse
+	3,  // 7: db.DBService.SaveUploadedVideo:output_type -> db.UploadVideoResponse
+	8,  // 8: db.DBService.GetUserVideosByExercise:output_type -> db.GetUserVideosByExerciseResponse
+	7,  // 9: db.DBService.SaveAnalysis:output_type -> db.SaveAnalysisResponse
+	10, // 10: db.DBService.CheckOwnership:output_type -> db.CheckOwnershipResponse
+	6,  // [6:11] is the sub-list for method output_type
+	1,  // [1:6] is the sub-list for method input_type
+	1,  // [1:1] is the sub-list for extension type_name
+	1,  // [1:1] is the sub-list for extension extendee
+	0,  // [0:1] is the sub-list for field type_name
 }
 
 func init() { file_proto_db_db_proto_init() }
@@ -710,7 +852,7 @@ func file_proto_db_db_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_db_db_proto_rawDesc), len(file_proto_db_db_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   9,
+			NumMessages:   11,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

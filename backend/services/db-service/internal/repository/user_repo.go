@@ -21,6 +21,7 @@ type Video struct {
 	Bucket    string
 	CreatedAt time.Time
 	ID        int64
+	UserID    int
 }
 
 type Repository struct {
@@ -113,4 +114,21 @@ func (r *Repository) SaveAnalysis(videoID int64, analysisType, bucket, objectKey
 	}
 
 	return analysisID, nil
+}
+
+func (r *Repository) GetVideoByID(videoID int64) (*Video, error) {
+	row := r.DB.QueryRow(context.Background(), `
+		SELECT object_key, bucket, created_at, id, user_id 
+		FROM videos
+		WHERE id = $1
+	`, videoID)
+
+	var video Video
+	err := row.Scan(&video.ObjectKey, &video.Bucket, &video.CreatedAt, &video.ID, &video.UserID)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return nil, nil
+	} else if err != nil {
+		return nil, fmt.Errorf("could not find video with id %d: %w", videoID, err)
+	}
+	return &video, nil
 }

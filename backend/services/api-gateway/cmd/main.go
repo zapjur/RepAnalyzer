@@ -45,7 +45,6 @@ func main() {
 	defer grpcDBClient.Close()
 
 	minioClient := minio.NewMinioClient()
-	minioClient.EnsureBucketExists("videos")
 
 	userHandler := handlers.NewUserHandler(grpcDBClient)
 	videoHandler := handlers.NewVideoHandler(minioClient.Minio, grpcDBClient, grpcOrchestratorClient)

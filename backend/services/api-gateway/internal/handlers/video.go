@@ -4,6 +4,7 @@ import (
 	"api-gateway/internal/auth"
 	"api-gateway/internal/grpc"
 	miniohelpers "api-gateway/internal/minio"
+	"api-gateway/internal/types"
 	"api-gateway/internal/utils"
 	dbPb "api-gateway/proto/db"
 	"context"
@@ -15,6 +16,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -28,6 +30,8 @@ type MinioObjectRef struct {
 	Bucket    string
 	ObjectKey string
 }
+
+var httpClient = &http.Client{Timeout: 3 * time.Second}
 
 func NewVideoHandler(minioClient *minio.Client, grpcDBClient, grpcOrchestratorClient *grpc.Client) *VideoHandler {
 	return &VideoHandler{minio: minioClient, grpcDBClient: grpcDBClient, grpcOrchestratorClient: grpcOrchestratorClient}
@@ -113,20 +117,79 @@ func (h *VideoHandler) GetVideosByExercise(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	response, err := h.grpcDBClient.DBService.GetUserVideosByExercise(context.Background(), &dbPb.GetUserVideosByExerciseRequest{
-		Auth0Id:      user.Auth0ID,
-		ExerciseName: exercise,
-	})
+	resp, err := h.grpcDBClient.DBService.GetUserVideosByExercise(
+		r.Context(),
+		&dbPb.GetUserVideosByExerciseRequest{
+			Auth0Id:      user.Auth0ID,
+			ExerciseName: exercise,
+		})
 	if err != nil {
 		http.Error(w, "Failed to get videos: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
-	if !response.Success {
-		http.Error(w, "Failed to get videos: "+response.Message, http.StatusInternalServerError)
+	if !resp.Success {
+		http.Error(w, "Failed to get videos: "+resp.Message, http.StatusInternalServerError)
 		return
 	}
 
+	vids := resp.Videos
+	out := make([]types.VideoWithURL, len(vids))
+
+	sem := make(chan struct{}, 8)
+	var wg sync.WaitGroup
+	authHeader := r.Header.Get("Authorization")
+
+	for i := range vids {
+		i := i
+		wg.Add(1)
+		sem <- struct{}{}
+		go func() {
+			defer wg.Done()
+			defer func() { <-sem }()
+			urlStr := fetchPresignedURL(r.Context(), authHeader, vids[i].Id)
+			out[i] = types.VideoWithURL{
+				Id:           vids[i].Id,
+				Bucket:       vids[i].Bucket,
+				ObjectKey:    vids[i].ObjectKey,
+				ExerciseName: vids[i].ExerciseName,
+				CreatedAt:    vids[i].CreatedAt,
+				Url:          urlStr,
+			}
+		}()
+	}
+	wg.Wait()
+
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(response.Videos)
+	_ = json.NewEncoder(w).Encode(out)
+}
+
+func fetchPresignedURL(ctx context.Context, authorization string, videoID int64) string {
+	req, err := http.NewRequestWithContext(ctx,
+		http.MethodGet,
+		fmt.Sprintf("%s/access/video/%d", "access-service:8082", videoID),
+		nil,
+	)
+	if err != nil {
+		return ""
+	}
+	if authorization != "" {
+		req.Header.Set("Authorization", authorization)
+	}
+
+	resp, err := httpClient.Do(req)
+	if err != nil {
+		return ""
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return ""
+	}
+
+	var payload struct {
+		URL string `json:"url"`
+	}
+	if err = json.NewDecoder(resp.Body).Decode(&payload); err != nil {
+		return ""
+	}
+	return payload.URL
 }
