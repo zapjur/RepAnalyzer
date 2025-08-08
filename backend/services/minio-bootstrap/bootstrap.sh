@@ -29,6 +29,19 @@ echo "$(date '+%F %T') MinIO is ready."
 mc mb "${MINIO_ALIAS}/${BUCKET}" >/dev/null 2>&1 || true
 mc anonymous set none "${MINIO_ALIAS}/${BUCKET}" >/dev/null 2>&1 || true
 
+cat > /tmp/cors.json <<'JSON'
+[
+  {
+    "AllowedOrigin": ["*"],
+    "AllowedMethod": ["GET"],
+    "AllowedHeader": ["*"],
+    "ExposeHeader": ["ETag"],
+    "MaxAgeSeconds": 3000
+  }
+]
+JSON
+mc cors set "${MINIO_ALIAS}/${BUCKET}" /tmp/cors.json >/dev/null 2>&1 || true
+
 cat > /tmp/policy-access-read.json <<'JSON'
 { "Version":"2012-10-17", "Statement":[
   {"Effect":"Allow","Action":["s3:GetObject"],"Resource":["arn:aws:s3:::videos/*"]}
@@ -42,9 +55,21 @@ cat > /tmp/policy-videos-rw.json <<'JSON'
 JSON
 
 cat > /tmp/policy-analyze-rw.json <<'JSON'
-{ "Version":"2012-10-17", "Statement":[
-  {"Effect":"Allow","Action":["s3:GetObject","s3:PutObject"],"Resource":["arn:aws:s3:::videos/*"]}
-]}
+{
+  "Version":"2012-10-17",
+  "Statement":[
+    {
+      "Effect":"Allow",
+      "Action":["s3:GetObject","s3:PutObject"],
+      "Resource":["arn:aws:s3:::videos/*"]
+    },
+    {
+      "Effect":"Allow",
+      "Action":["s3:ListBucket","s3:GetBucketLocation"],
+      "Resource":["arn:aws:s3:::videos"]
+    }
+  ]
+}
 JSON
 
 mc admin policy create "${MINIO_ALIAS}" access-read /tmp/policy-access-read.json >/dev/null 2>&1 || true

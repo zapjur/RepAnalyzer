@@ -41,5 +41,9 @@ func (h *AccessHandler) GetPresignedURL(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	log.Println(url)
-	json.NewEncoder(w).Encode(map[string]string{"url": url})
+	w.Header().Set("Content-Type", "application/json")
+	enc := json.NewEncoder(w)
+	enc.SetEscapeHTML(false)
+	_ = enc.Encode(map[string]string{"url": url})
+
 }

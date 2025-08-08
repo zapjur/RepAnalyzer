@@ -17,6 +17,7 @@ type Client struct {
 	accessKey string
 	secretKey string
 	useSSL    bool
+	region    string
 }
 
 func NewClient() *Client {
@@ -24,14 +25,17 @@ func NewClient() *Client {
 	accessKey := getenvDefault("MINIO_ACCESS_KEY")
 	secretKey := getenvDefault("MINIO_SECRET_KEY")
 	useSSL := getenvBool("MINIO_USE_SSL")
+	region := getenvDefault("MINIO_REGION")
 
 	c := &Client{
 		endpoint:  endpoint,
 		accessKey: accessKey,
 		secretKey: secretKey,
 		useSSL:    useSSL,
+		region:    region,
 	}
 	c.connectWithRetry()
+	log.Printf("MinIO presign client ready (endpoint=%s, ssl=%v, region=%s)\n", c.endpoint, c.useSSL, c.region)
 	return c
 }
 
@@ -41,6 +45,7 @@ func (c *Client) connectWithRetry() {
 		c.client, err = minio.New(c.endpoint, &minio.Options{
 			Creds:  credentials.NewStaticV4(c.accessKey, c.secretKey, ""),
 			Secure: c.useSSL,
+			Region: c.region,
 		})
 		if err == nil {
 			log.Println("Connected to MinIO")
