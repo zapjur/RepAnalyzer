@@ -65,6 +65,15 @@ func (c *Client) GeneratePresignedURL(ctx context.Context, bucket, objectKey str
 	return presignedUrl.String(), nil
 }
 
+func (c *Client) GeneratePresignedAnalysisURL(ctx context.Context, bucket, objectKey string) (string, error) {
+	reqParams := make(url.Values)
+	presignedUrl, err := c.client.PresignedGetObject(ctx, bucket, objectKey, 10*time.Minute, reqParams)
+	if err != nil {
+		return "", err
+	}
+	return presignedUrl.String(), nil
+}
+
 func getenvDefault(key string) string {
 	if v := os.Getenv(key); v != "" {
 		return v

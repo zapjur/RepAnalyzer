@@ -8,6 +8,7 @@ import (
 
 type MinioClient interface {
 	GeneratePresignedURL(ctx context.Context, bucket, objectKey string) (string, error)
+	GeneratePresignedAnalysisURL(ctx context.Context, bucket, objectKey string) (string, error)
 }
 
 type GrpcClient interface {
@@ -36,4 +37,16 @@ func (s *AccessService) GeneratePresignedURL(ctx context.Context, auth0ID string
 	}
 
 	return s.minioClient.GeneratePresignedURL(ctx, resp.Bucket, resp.ObjectKey)
+}
+
+func (s *AccessService) GeneratePresignedAnalysisURL(ctx context.Context, auth0ID string, videoID int64, bucket, objectKey string) (string, error) {
+	resp, err := s.grpcClient.UserOwnsVideo(ctx, auth0ID, videoID)
+	if err != nil {
+		return "", fmt.Errorf("failed to verify ownership: %w", err)
+	}
+	if !resp.Owned {
+		return "", fmt.Errorf("user does not own this video")
+	}
+
+	return s.minioClient.GeneratePresignedAnalysisURL(ctx, bucket, objectKey)
 }

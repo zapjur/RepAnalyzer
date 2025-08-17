@@ -4,10 +4,12 @@ import (
 	orPb "api-gateway/proto/analysis"
 	dbPb "api-gateway/proto/db"
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/minio/minio-go/v7"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -108,4 +110,70 @@ func (h *VideoHandler) sendVideoToAnalyze(ref *MinioObjectRef, exercise, auth0ID
 		return nil, err
 	}
 	return resp, nil
+}
+
+func fetchPresignedURL(ctx context.Context, authorization string, videoID int64) string {
+	req, err := http.NewRequestWithContext(ctx,
+		http.MethodGet,
+		fmt.Sprintf("%s/access/video/%d", "http://access-service:8082", videoID),
+		nil,
+	)
+	if err != nil {
+		return ""
+	}
+	if authorization != "" {
+		req.Header.Set("Authorization", authorization)
+	}
+
+	resp, err := httpClient.Do(req)
+	if err != nil {
+		return ""
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return ""
+	}
+
+	var payload struct {
+		URL string `json:"url"`
+	}
+	if err = json.NewDecoder(resp.Body).Decode(&payload); err != nil {
+		return ""
+	}
+	return payload.URL
+}
+
+func fetchPresignedAnalysisURL(ctx context.Context, authorization string, videoID int64, bucket, objectKey string) string {
+	req, err := http.NewRequestWithContext(ctx,
+		http.MethodGet,
+		fmt.Sprintf("http://access-service:8082/access/video-analysis/%d?bucket=%s&objectKey=%s",
+			videoID,
+			url.QueryEscape(bucket),
+			url.QueryEscape(objectKey),
+		),
+		nil,
+	)
+	if err != nil {
+		return ""
+	}
+	if authorization != "" {
+		req.Header.Set("Authorization", authorization)
+	}
+
+	resp, err := httpClient.Do(req)
+	if err != nil {
+		return ""
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return ""
+	}
+
+	var payload struct {
+		URL string `json:"url"`
+	}
+	if err = json.NewDecoder(resp.Body).Decode(&payload); err != nil {
+		return ""
+	}
+	return payload.URL
 }

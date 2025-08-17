@@ -165,3 +165,28 @@ func (s *DBServer) CheckOwnership(ctx context.Context, req *pb.CheckOwnershipReq
 		Bucket:    video.Bucket,
 	}, nil
 }
+
+func (s *DBServer) GetVideoAnalysis(ctx context.Context, req *pb.GetVideoAnalysisRequest) (*pb.GetVideoAnalysisResponse, error) {
+	log.Printf("Getting analysis for video ID: %d", req.VideoId)
+
+	analyses, err := s.repo.GetVideoAnalysis(req.VideoId)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to fetch video analysis: %v", err)
+	}
+
+	var analysisInfos []*pb.VideoAnalysis
+	for _, a := range analyses {
+		analysisInfos = append(analysisInfos, &pb.VideoAnalysis{
+			Id:        a.ID,
+			Type:      a.Type,
+			Bucket:    a.Bucket,
+			ObjectKey: a.ObjectKey,
+		})
+	}
+
+	return &pb.GetVideoAnalysisResponse{
+		Success:  true,
+		Message:  "Analysis retrieved successfully",
+		Analyses: analysisInfos,
+	}, nil
+}

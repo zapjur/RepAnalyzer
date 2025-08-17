@@ -21,5 +21,6 @@ func Setup(minioClient *minio.Client, grpcClient *grpc.Client) http.Handler {
 	h := handler.NewAccessHandler(svc)
 
 	r.Get("/access/video/{videoId}", h.GetPresignedURL)
+	r.Get("/access/video-analysis/{videoId}", h.GetVideoAnalysis)
 	return r
 }

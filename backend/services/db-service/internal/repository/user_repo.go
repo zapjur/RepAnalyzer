@@ -24,6 +24,15 @@ type Video struct {
 	UserID    int
 }
 
+type VideoAnalysis struct {
+	VideoID   int64
+	Type      string
+	Bucket    string
+	ObjectKey string
+	ID        int64
+	CreatedAt time.Time
+}
+
 type Repository struct {
 	DB *pgxpool.Pool
 }
@@ -131,4 +140,27 @@ func (r *Repository) GetVideoByID(videoID int64) (*Video, error) {
 		return nil, fmt.Errorf("could not find video with id %d: %w", videoID, err)
 	}
 	return &video, nil
+}
+
+func (r *Repository) GetVideoAnalysis(videoID int64) ([]VideoAnalysis, error) {
+	rows, err := r.DB.Query(context.Background(), `
+		SELECT id, video_id, type, bucket, object_key, created_at
+		FROM video_analysis
+		WHERE video_id = $1
+	`, videoID)
+	if err != nil {
+		return nil, fmt.Errorf("could not query analysis for video_id %d: %w", videoID, err)
+	}
+	defer rows.Close()
+
+	var analyses []VideoAnalysis
+	for rows.Next() {
+		var analysis VideoAnalysis
+		if err = rows.Scan(&analysis.ID, &analysis.VideoID, &analysis.Type, &analysis.Bucket, &analysis.ObjectKey, &analysis.CreatedAt); err != nil {
+			return nil, fmt.Errorf("could not scan analysis row: %w", err)
+		}
+		analyses = append(analyses, analysis)
+	}
+
+	return analyses, nil
 }

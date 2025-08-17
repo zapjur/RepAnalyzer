@@ -57,6 +57,7 @@ func main() {
 	r.Get("/users", userHandler.GetUser)
 	r.Post("/upload", videoHandler.UploadVideo)
 	r.Get("/videos/{exercise}", videoHandler.GetVideosByExercise)
+	r.Get("/video-analysis/{videoId}", videoHandler.GetVideoAnalysis)
 
 	log.Printf("API Gateway started on port %s", cfg.HTTPPort)
 	if err = http.ListenAndServe(":"+cfg.HTTPPort, r); err != nil {

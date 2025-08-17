@@ -71,10 +71,29 @@ message CheckOwnershipResponse {
   string bucket = 4;
 }
 
+message VideoAnalysis {
+  int64 video_id = 1;
+  string type = 2;
+  string bucket = 3;
+  string object_key = 4;
+  int64 id = 5;
+}
+
+message GetVideoAnalysisResponse {
+  repeated VideoAnalysis analyses = 1;
+  bool success = 2;
+  string message = 3;
+}
+
+message GetVideoAnalysisRequest {
+  int64 video_id = 1;
+}
+
 service DBService {
   rpc GetUser(GetUserRequest) returns (GetUserResponse);
   rpc SaveUploadedVideo(UploadVideoRequest) returns (UploadVideoResponse);
   rpc GetUserVideosByExercise(GetUserVideosByExerciseRequest) returns (GetUserVideosByExerciseResponse);
   rpc SaveAnalysis(VideoAnalysisRequest) returns (SaveAnalysisResponse);
   rpc CheckOwnership(CheckOwnershipRequest) returns (CheckOwnershipResponse);
+  rpc GetVideoAnalysis(GetVideoAnalysisRequest) returns (GetVideoAnalysisResponse);
 }

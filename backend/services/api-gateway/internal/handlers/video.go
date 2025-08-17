@@ -7,7 +7,6 @@ import (
 	"api-gateway/internal/types"
 	"api-gateway/internal/utils"
 	dbPb "api-gateway/proto/db"
-	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/go-chi/chi/v5"
@@ -15,6 +14,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -164,33 +164,63 @@ func (h *VideoHandler) GetVideosByExercise(w http.ResponseWriter, r *http.Reques
 	_ = json.NewEncoder(w).Encode(out)
 }
 
-func fetchPresignedURL(ctx context.Context, authorization string, videoID int64) string {
-	req, err := http.NewRequestWithContext(ctx,
-		http.MethodGet,
-		fmt.Sprintf("%s/access/video/%d", "http://access-service:8082", videoID),
-		nil,
+func (h *VideoHandler) GetVideoAnalysis(w http.ResponseWriter, r *http.Request) {
+	videoID := chi.URLParam(r, "videoId")
+	if videoID == "" {
+		http.Error(w, "Missing video ID path parameter", http.StatusBadRequest)
+		return
+	}
+	videoIDint, err := strconv.ParseInt(videoID, 10, 64)
+	if err != nil {
+		log.Println("Invalid video ID:", videoID, err)
+		http.Error(w, "Invalid video ID", http.StatusBadRequest)
+		return
+	}
+
+	resp, err := h.grpcDBClient.DBService.GetVideoAnalysis(
+		r.Context(),
+		&dbPb.GetVideoAnalysisRequest{
+			VideoId: videoIDint,
+		},
 	)
 	if err != nil {
-		return ""
+		http.Error(w, "Failed to get videos analysis: "+err.Error(), http.StatusInternalServerError)
+		return
 	}
-	if authorization != "" {
-		req.Header.Set("Authorization", authorization)
-	}
-
-	resp, err := httpClient.Do(req)
-	if err != nil {
-		return ""
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
-		return ""
+	if !resp.Success {
+		http.Error(w, "Failed to get videos analysis: "+resp.Message, http.StatusInternalServerError)
+		return
 	}
 
-	var payload struct {
-		URL string `json:"url"`
+	vids := resp.Analyses
+	out := make([]types.VideoAnalysisWithURL, len(vids))
+
+	sem := make(chan struct{}, 8)
+	var wg sync.WaitGroup
+	authHeader := r.Header.Get("Authorization")
+
+	for i := range vids {
+		i := i
+		wg.Add(1)
+		sem <- struct{}{}
+		go func() {
+			defer wg.Done()
+			defer func() { <-sem }()
+			urlStr := fetchPresignedAnalysisURL(r.Context(), authHeader, vids[i].Id, vids[i].Bucket, vids[i].ObjectKey)
+			out[i] = types.VideoAnalysisWithURL{
+				Id:        vids[i].Id,
+				Bucket:    vids[i].Bucket,
+				ObjectKey: vids[i].ObjectKey,
+				Type:      vids[i].Type,
+				VideoId:   vids[i].VideoId,
+				Url:       urlStr,
+			}
+			log.Println(out)
+		}()
 	}
-	if err = json.NewDecoder(resp.Body).Decode(&payload); err != nil {
-		return ""
-	}
-	return payload.URL
+	wg.Wait()
+
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(out)
+
 }
