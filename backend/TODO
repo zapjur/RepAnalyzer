@@ -1,3 +1,5 @@
+- endpointy dla wynikow analizy
 - podstrona na wynik analizy wideo
-- .env do access-service improveconfig etc
+- improve config and .env
+- pose estimation
 - dodac wiecej property do tabeli videos. ciezar, powtorzenia itp.
