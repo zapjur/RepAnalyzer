@@ -21,13 +21,6 @@ type DBServer struct {
 	repo *repository.Repository
 }
 
-type Video struct {
-	ObjectKey string
-	Bucket    string
-	CreatedAt time.Time
-	ID        int64
-}
-
 func (s *DBServer) GetUser(ctx context.Context, req *pb.GetUserRequest) (*pb.GetUserResponse, error) {
 	log.Printf("Checking user: %s", req.Auth0Id)
 
@@ -141,26 +134,56 @@ func (s *DBServer) SaveAnalysis(ctx context.Context, req *pb.VideoAnalysisReques
 }
 
 func (s *DBServer) CheckOwnership(ctx context.Context, req *pb.CheckOwnershipRequest) (*pb.CheckOwnershipResponse, error) {
+	if req == nil {
+		log.Println("CheckOwnership called with nil request")
+		return nil, status.Error(codes.InvalidArgument, "nil request")
+	}
+	if s.repo == nil {
+		log.Println("CheckOwnership called but repository is not initialized")
+		return nil, status.Error(codes.Internal, "repository not initialized")
+	}
+
 	video, err := s.repo.GetVideoByID(req.VideoId)
 	if err != nil {
+		log.Printf("Failed to fetch video with ID %d: %v", req.VideoId, err)
 		return nil, status.Errorf(codes.Internal, "failed to fetch video: %v", err)
+	}
+	if video == nil {
+		log.Printf("Video with ID %d not found", req.VideoId)
+		return &pb.CheckOwnershipResponse{
+			Owned:     false,
+			Message:   "video not found",
+			ObjectKey: "",
+			Bucket:    "",
+		}, status.Error(codes.NotFound, "video not found")
 	}
 
 	user, err := s.repo.GetUserByAuth0ID(req.Auth0Id)
 	if err != nil {
+		log.Printf("Failed to fetch user with Auth0 ID %s: %v", req.Auth0Id, err)
 		return &pb.CheckOwnershipResponse{
-				Owned:     false,
-				Message:   "Database error: " + err.Error(),
-				ObjectKey: "",
-				Bucket:    "",
-			},
-			status.Errorf(codes.Internal, "failed to fetch user: %v", err)
+			Owned:     false,
+			Message:   "database error: " + err.Error(),
+			ObjectKey: "",
+			Bucket:    "",
+		}, status.Errorf(codes.Internal, "failed to fetch user: %v", err)
+	}
+	if user == nil {
+		log.Printf("User with Auth0 ID %s not found", req.Auth0Id)
+		return &pb.CheckOwnershipResponse{
+			Owned:     false,
+			Message:   "user not found",
+			ObjectKey: "",
+			Bucket:    "",
+		}, status.Error(codes.NotFound, "user not found")
 	}
 
 	owned := video.UserID == user.ID
+
+	log.Printf("User %s ownership check for video ID %d: %t", req.Auth0Id, req.VideoId, owned)
 	return &pb.CheckOwnershipResponse{
 		Owned:     owned,
-		Message:   "Success",
+		Message:   "success",
 		ObjectKey: video.ObjectKey,
 		Bucket:    video.Bucket,
 	}, nil
@@ -181,6 +204,7 @@ func (s *DBServer) GetVideoAnalysis(ctx context.Context, req *pb.GetVideoAnalysi
 			Type:      a.Type,
 			Bucket:    a.Bucket,
 			ObjectKey: a.ObjectKey,
+			VideoId:   a.VideoID,
 		})
 	}
 

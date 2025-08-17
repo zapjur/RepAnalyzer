@@ -1,5 +1,7 @@
-- endpointy dla wynikow analizy
-- podstrona na wynik analizy wideo
+- podstrona na wynik analizy wideo - ulepszyć
 - improve config and .env
 - pose estimation
 - dodac wiecej property do tabeli videos. ciezar, powtorzenia itp.
+- refactor kodu na czystczy
+- dodac logi
+- analiza techniki, co poprawic

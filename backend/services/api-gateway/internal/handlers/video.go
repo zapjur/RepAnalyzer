@@ -161,7 +161,13 @@ func (h *VideoHandler) GetVideosByExercise(w http.ResponseWriter, r *http.Reques
 	wg.Wait()
 
 	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(out)
+
+	enc := json.NewEncoder(w)
+	enc.SetEscapeHTML(false)
+	if err := enc.Encode(out); err != nil {
+		http.Error(w, "encode error: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
 }
 
 func (h *VideoHandler) GetVideoAnalysis(w http.ResponseWriter, r *http.Request) {
@@ -176,6 +182,7 @@ func (h *VideoHandler) GetVideoAnalysis(w http.ResponseWriter, r *http.Request) 
 		http.Error(w, "Invalid video ID", http.StatusBadRequest)
 		return
 	}
+	log.Println("GetVideoAnalysis called for video ID:", videoIDint)
 
 	resp, err := h.grpcDBClient.DBService.GetVideoAnalysis(
 		r.Context(),
@@ -203,10 +210,11 @@ func (h *VideoHandler) GetVideoAnalysis(w http.ResponseWriter, r *http.Request) 
 		i := i
 		wg.Add(1)
 		sem <- struct{}{}
+		log.Println("Fetching presigned URL for video analysis:", vids[i].VideoId, vids[i].Bucket, vids[i].ObjectKey)
 		go func() {
 			defer wg.Done()
 			defer func() { <-sem }()
-			urlStr := fetchPresignedAnalysisURL(r.Context(), authHeader, vids[i].Id, vids[i].Bucket, vids[i].ObjectKey)
+			urlStr := fetchPresignedAnalysisURL(r.Context(), authHeader, vids[i].VideoId, vids[i].Bucket, vids[i].ObjectKey)
 			out[i] = types.VideoAnalysisWithURL{
 				Id:        vids[i].Id,
 				Bucket:    vids[i].Bucket,
@@ -221,6 +229,12 @@ func (h *VideoHandler) GetVideoAnalysis(w http.ResponseWriter, r *http.Request) 
 	wg.Wait()
 
 	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(out)
+	log.Println("Returning video analysis response with url", out[0].Url)
+	enc := json.NewEncoder(w)
+	enc.SetEscapeHTML(false)
+	if err := enc.Encode(out); err != nil {
+		http.Error(w, "encode error: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
 
 }

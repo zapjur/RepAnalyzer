@@ -51,7 +51,7 @@ func (c *Client) UserOwnsVideo(ctx context.Context, auth0ID string, videoID int6
 	if err != nil {
 		return types.GrpcDBServiceResponse{}, err
 	}
-	if resp.Message != "Success" {
+	if resp.Message != "success" {
 		return types.GrpcDBServiceResponse{}, errors.New("access denied: " + resp.Message)
 	}
 	return types.GrpcDBServiceResponse{

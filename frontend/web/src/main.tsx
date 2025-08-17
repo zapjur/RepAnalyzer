@@ -5,13 +5,16 @@ import App from "./App.tsx";
 import AuthProvider from "./providers/auth.tsx";
 import "./index.css";
 import {VideosProvider} from "./contexts/VideosContext.tsx";
+import {AnalysesProvider} from "./contexts/AnalysesContext.tsx";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
     <React.StrictMode>
         <BrowserRouter>
             <AuthProvider>
                 <VideosProvider>
-                    <App />
+                    <AnalysesProvider>
+                        <App />
+                    </AnalysesProvider>
                 </VideosProvider>
             </AuthProvider>
         </BrowserRouter>
