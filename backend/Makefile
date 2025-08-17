@@ -1,7 +1,7 @@
 MINIO_URL = http://localhost:9000
 MINIO_ALIAS = local
-MINIO_ROOT_USER = minioadmin
-MINIO_ROOT_PASS = minioadmin
+MINIO_ROOT_USER = admin
+MINIO_ROOT_PASS = admin123
 
 BUCKET = videos
 USER_PREFIX = auth0_67d1b4eec471877e05db4b83
@@ -23,8 +23,6 @@ PGDATABASE ?= database
 PGUSER ?= user
 PGPASSWORD ?= password
 USER_ID ?= 1
-
-.PHONY: all alias-root ensure-bucket upload-videos db-insert
 
 all: upload-videos db-insert
 
