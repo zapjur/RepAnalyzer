@@ -1,15 +1,22 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useAnalyses, VideoAnalysis } from "../contexts/AnalysesContext";
 import { useNavigate, useParams } from "react-router-dom";
+import {Link} from "react-router-dom";
 
-export default function AnalysisDeadliftPage() {
+const cx = (...classes: Array<string | false | null | undefined>) => classes.filter(Boolean).join(" ");
+
+type TabKey = "barpath" | "pose" | "analysis";
+
+const AnalysisDeadliftPage: React.FC = () => {
     const { fetchByVideo } = useAnalyses();
     const { videoId } = useParams<{ videoId: string }>();
+
     const [items, setItems] = useState<VideoAnalysis[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const navigate = useNavigate();
+    const [active, setActive] = useState<TabKey>("barpath");
 
+    const navigate = useNavigate();
     const parsedVideoId = Number(videoId);
 
     useEffect(() => {
@@ -33,68 +40,85 @@ export default function AnalysisDeadliftPage() {
                 if (mounted) setLoading(false);
             }
         })();
-
-        return () => { mounted = false; };
+        return () => {
+            mounted = false;
+        };
     }, [fetchByVideo, parsedVideoId, videoId]);
 
+    const byType = useMemo(() => {
+        const groups: Record<TabKey, VideoAnalysis[]> = { barpath: [], pose: [], analysis: [] } as const as Record<TabKey, VideoAnalysis[]>;
+        for (const it of items) {
+            const type = it.type?.toLowerCase?.() || "";
+            if (type.includes("bar")) groups.barpath.push(it);
+            else if (type.includes("pose")) groups.pose.push(it);
+            else groups.analysis.push(it);
+        }
+        return groups;
+    }, [items]);
+
+    const currentList = active === "barpath" ? byType.barpath : active === "pose" ? byType.pose : byType.analysis;
+
     return (
-        <div className="p-4">
-            <div className="flex items-center justify-between mb-4">
-                <h2 className="text-2xl font-bold">
-                    Deadlift — Analyses (video #{!Number.isNaN(parsedVideoId) ? parsedVideoId : "?"})
-                </h2>
+        <div className="flex h-screen">
+            <aside className="w-64 bg-stone-50 text-white p-6 h-screen flex flex-col">
+                <Link to={"/dashboard"}>
+                    <img src="/repanalyzer-logo-small.png" alt="Logo" className="w-32 mx-auto mb-4" />
+                </Link>
+
+                <div className="flex flex-col flex-1">
+                    <div className="mb-6">
+                        <Tab label="Bar Path" active={active === "barpath"} onClick={() => setActive("barpath")} />
+                        <Tab label="Pose Estimation" active={active === "pose"} onClick={() => setActive("pose")} />
+                        <Tab label="Technique Analysis (soon)" active={active === "analysis"} onClick={() => setActive("analysis")} />
+                    </div>
+                </div>
+
                 <button
                     onClick={() => navigate(-1)}
-                    className="rounded px-3 py-2 border hover:bg-gray-50 transition"
+                    className="bg-red-500 text-stone-950 block p-2 rounded-full hover:bg-red-600 mt-auto"
                 >
                     ← Back
                 </button>
-            </div>
+            </aside>
 
-            {loading && <p>Loading…</p>}
-            {error && <p className="text-red-600">Error: {error}</p>}
-            {!loading && !error && items.length === 0 && <p>No analyses found for this video.</p>}
+            <main className="flex-1 p-6 bg-stone-200">
 
-            {!loading && !error && items.length > 0 && (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {items.map((a) => (
-                        <div key={a.id} className="flex flex-col items-center rounded-lg shadow p-3">
-                            <video controls className="w-full mb-2 rounded">
-                                <source src={a.url} type="video/mp4" />
-                                Your browser does not support the video tag.
-                            </video>
+                {loading && <p>Loading…</p>}
+                {error && <p className="text-red-600">Error: {error}</p>}
 
-                            <div className="w-full text-sm text-gray-600 mb-2">
-                                <div>Type: <span className="font-medium">{a.type}</span></div>
-                                <div>Video ID: {a.video_id}</div>
-                            </div>
-
-                            <div className="flex gap-2 w-full">
-                                <a
-                                    className="bg-gray-800 text-white px-3 py-2 rounded hover:bg-gray-900 transition w-full text-center"
-                                    href={a.url}
-                                    download
-                                >
-                                    Download
-                                </a>
-                                <a
-                                    className="border px-3 py-2 rounded hover:bg-gray-50 transition w-full text-center"
-                                    href={a.url}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                >
-                                    Open
-                                </a>
-                            </div>
-
-                            <div className="mt-2 text-xs text-gray-500 w-full break-words">
-                                <div>Bucket: {a.bucket}</div>
-                                <div>Object: {a.object_key}</div>
-                            </div>
+                {!loading && !error && (
+                    currentList.length === 0 ? (
+                        <p>No videos yet</p>
+                    ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            {currentList.map((a) => (
+                                <div key={a.id} className="flex flex-col items-center">
+                                    <video controls className="w-full mb-2">
+                                        <source src={a.url} type="video/mp4" />
+                                        Your browser does not support the video tag.
+                                    </video>
+                                </div>
+                            ))}
                         </div>
-                    ))}
-                </div>
-            )}
+                    )
+                )}
+            </main>
         </div>
     );
+};
+
+function Tab({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
+    return (
+        <button
+            onClick={onClick}
+            className={cx(
+                "text-stone-950 block p-2 rounded mb-2 w-full text-left",
+                active ? "bg-stone-300" : "hover:bg-stone-300"
+            )}
+        >
+            {label}
+        </button>
+    );
 }
+
+export default AnalysisDeadliftPage;
