@@ -4,54 +4,63 @@ import (
 	orPb "api-gateway/proto/analysis"
 	dbPb "api-gateway/proto/db"
 	"context"
+	"crypto/rand"
 	"encoding/json"
 	"fmt"
 	"github.com/minio/minio-go/v7"
+	"github.com/oklog/ulid/v2"
 	"io"
 	"net/http"
 	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
-func (h *VideoHandler) parseAndPrepareFormData(w http.ResponseWriter, r *http.Request) (exercise, cleanFilename string, tmpFile *os.File, err error) {
-	err = r.ParseMultipartForm(100 << 20) // 100 MB
+var entropy = ulid.Monotonic(rand.Reader, 0)
+
+func GenerateULID() string {
+	return ulid.MustNew(ulid.Timestamp(time.Now()), entropy).String()
+}
+
+func (h *VideoHandler) parseAndPrepareFormData(w http.ResponseWriter, r *http.Request) (string, string, *os.File, error) {
+	err := r.ParseMultipartForm(100 << 20) // 100 MB
 	if err != nil {
 		http.Error(w, "Could not parse multipart form", http.StatusBadRequest)
-		return
+		return "", "", nil, err
 	}
 
-	file, handler, err := r.FormFile("file")
+	file, _, err := r.FormFile("file")
 	if err != nil {
 		http.Error(w, "Could not get file from request", http.StatusBadRequest)
-		return
+		return "", "", nil, err
 	}
 	defer file.Close()
 
-	cleanFilename = strings.NewReplacer("(", "_", ")", "_", " ", "_").Replace(handler.Filename)
+	filename := GenerateULID()
 
-	exercise = r.FormValue("exercise")
+	exercise := r.FormValue("exercise")
 	if exercise == "" {
 		http.Error(w, "Missing exercise field", http.StatusBadRequest)
-		return
+		return "", "", nil, fmt.Errorf("missing exercise field")
 	}
 	exercise = strings.ReplaceAll(exercise, " ", "_")
 
-	tmpFile, err = os.CreateTemp("", "upload-*"+filepath.Ext(cleanFilename))
+	tmpFile, err := os.CreateTemp("", "upload-*"+filepath.Ext(filename))
 	if err != nil {
 		http.Error(w, "Failed to create temp file", http.StatusInternalServerError)
-		return
+		return "", "", nil, err
 	}
 
 	file.Seek(0, io.SeekStart)
 	_, err = io.Copy(tmpFile, file)
 	if err != nil {
 		http.Error(w, "Failed to write uploaded file", http.StatusInternalServerError)
-		return
+		return "", "", nil, err
 	}
 
-	return exercise, cleanFilename, tmpFile, nil
+	return exercise, filename, tmpFile, nil
 }
 
 func openConvertedFile(path string) (*os.File, os.FileInfo, error) {
@@ -67,12 +76,11 @@ func openConvertedFile(path string) (*os.File, os.FileInfo, error) {
 	return f, info, nil
 }
 
-func (h *VideoHandler) uploadToMinIO(auth0ID, exercise, baseFilename string, file *os.File, info os.FileInfo) (*MinioObjectRef, error) {
-	baseFilename = strings.TrimSuffix(baseFilename, filepath.Ext(baseFilename))
+func (h *VideoHandler) uploadToMinIO(ctx context.Context, auth0ID, exercise, baseFilename string, file *os.File, info os.FileInfo) (*MinioObjectRef, error) {
 	objectKey := fmt.Sprintf("%s/%s/original/%s.mp4", auth0ID, exercise, baseFilename)
 	bucket := "videos"
 
-	_, err := h.minio.PutObject(context.Background(), bucket, objectKey, file, info.Size(), minio.PutObjectOptions{
+	_, err := h.minio.PutObject(ctx, bucket, objectKey, file, info.Size(), minio.PutObjectOptions{
 		ContentType: "video/mp4",
 	})
 	if err != nil {

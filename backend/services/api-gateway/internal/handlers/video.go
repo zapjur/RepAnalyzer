@@ -38,7 +38,7 @@ func NewVideoHandler(minioClient *minio.Client, grpcDBClient, grpcOrchestratorCl
 }
 
 func (h *VideoHandler) UploadVideo(w http.ResponseWriter, r *http.Request) {
-	exercise, cleanFilename, tmpInput, err := h.parseAndPrepareFormData(w, r)
+	exercise, filename, tmpInput, err := h.parseAndPrepareFormData(w, r)
 	if err != nil {
 		return
 	}
@@ -67,7 +67,7 @@ func (h *VideoHandler) UploadVideo(w http.ResponseWriter, r *http.Request) {
 	}
 	defer convertedFile.Close()
 
-	minioObjectRef, err := h.uploadToMinIO(auth0IDEdited, exercise, cleanFilename, convertedFile, fileInfo)
+	minioObjectRef, err := h.uploadToMinIO(r.Context(), auth0IDEdited, exercise, filename, convertedFile, fileInfo)
 	if err != nil {
 		http.Error(w, "Failed to upload to MinIO: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -75,9 +75,10 @@ func (h *VideoHandler) UploadVideo(w http.ResponseWriter, r *http.Request) {
 
 	if err = miniohelpers.WaitForObject(h.minio, minioObjectRef.Bucket, minioObjectRef.ObjectKey, 5, 1*time.Second); err != nil {
 		http.Error(w, "MinIO object not available after upload: "+err.Error(), http.StatusInternalServerError)
-		log.Printf("Uploaded to MinIO and verified presence: %s/%s", minioObjectRef.Bucket, minioObjectRef.ObjectKey)
+		log.Printf("MinIO object not available after upload: %s/%s, error: %v", minioObjectRef.Bucket, minioObjectRef.ObjectKey, err)
 		return
 	}
+	log.Printf("Uploaded to MinIO and verified presence: %s/%s", minioObjectRef.Bucket, minioObjectRef.ObjectKey)
 
 	dbResp, err := h.saveVideoToDB(auth0ID, minioObjectRef, exercise)
 	if err != nil {
