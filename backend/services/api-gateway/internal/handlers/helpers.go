@@ -151,18 +151,19 @@ func fetchPresignedURL(ctx context.Context, authorization string, videoID int64)
 	return payload.URL
 }
 
-func fetchPresignedAnalysisURL(ctx context.Context, authorization string, videoID int64, bucket, objectKey string) string {
+func fetchPresignedAnalysisURL(ctx context.Context, authorization string, videoID int64, bucket, objectKey, videoType string) (string, *string) {
 	req, err := http.NewRequestWithContext(ctx,
 		http.MethodGet,
-		fmt.Sprintf("http://access-service:8082/access/video-analysis/%d?bucket=%s&objectKey=%s",
+		fmt.Sprintf("http://access-service:8082/access/video-analysis/%d?bucket=%s&objectKey=%s&type=%s",
 			videoID,
 			url.QueryEscape(bucket),
 			url.QueryEscape(objectKey),
+			url.QueryEscape(videoType),
 		),
 		nil,
 	)
 	if err != nil {
-		return ""
+		return "", nil
 	}
 	if authorization != "" {
 		req.Header.Set("Authorization", authorization)
@@ -170,18 +171,20 @@ func fetchPresignedAnalysisURL(ctx context.Context, authorization string, videoI
 
 	resp, err := httpClient.Do(req)
 	if err != nil {
-		return ""
+		return "", nil
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		return ""
+		return "", nil
 	}
 
 	var payload struct {
-		URL string `json:"url"`
+		URL    string  `json:"url"`
+		CSVURL *string `json:"csvUrl,omitempty"`
 	}
+
 	if err = json.NewDecoder(resp.Body).Decode(&payload); err != nil {
-		return ""
+		return "", nil
 	}
-	return payload.URL
+	return payload.URL, payload.CSVURL
 }

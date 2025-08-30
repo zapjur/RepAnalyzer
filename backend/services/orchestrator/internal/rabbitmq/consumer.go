@@ -19,9 +19,21 @@ type BarpathResult struct {
 	Message   string `json:"message,omitempty"`
 }
 
+type PoseResult struct {
+	VideoID   string `json:"video_id"`
+	Status    string `json:"status"`
+	Bucket    string `json:"bucket,omitempty"`
+	ObjectKey string `json:"object_key,omitempty"`
+	Message   string `json:"message,omitempty"`
+}
+
 func StartConsumers(ch *amqp.Channel, redisManager *redis.RedisManager, grpcClient *client.Client) {
 	if err := ConsumeBarpathResults(ch, redisManager, grpcClient); err != nil {
 		log.Fatalf("Failed to start Barpath consumer: %v", err)
+	}
+
+	if err := ConsumePoseResults(ch, redisManager, grpcClient); err != nil {
+		log.Fatalf("Failed to start Pose consumer: %v", err)
 	}
 
 }
@@ -65,7 +77,7 @@ func ConsumeBarpathResults(ch *amqp.Channel, redisManager *redis.RedisManager, g
 					VideoId:   videoID,
 					Bucket:    result.Bucket,
 					ObjectKey: result.ObjectKey,
-					Type:      "bar_path",
+					Type:      "barpath",
 				})
 				if err != nil {
 					log.Printf("Failed to save analysis in DB: %v", err)
@@ -75,6 +87,63 @@ func ConsumeBarpathResults(ch *amqp.Channel, redisManager *redis.RedisManager, g
 					log.Printf("Failed to save analysis in DB: %s", res.Message)
 				} else {
 					log.Printf("Analysis saved successfully in DB")
+				}
+			}
+		}
+	}()
+
+	return nil
+}
+
+func ConsumePoseResults(ch *amqp.Channel, redisManager *redis.RedisManager, grpcClient *client.Client) error {
+	msgs, err := ch.Consume(
+		"pose_results_queue",
+		"",
+		true,
+		false,
+		false,
+		false,
+		nil,
+	)
+	if err != nil {
+		return err
+	}
+
+	go func() {
+		for msg := range msgs {
+			var result PoseResult
+			if err = json.Unmarshal(msg.Body, &result); err != nil {
+				log.Printf("Failed to parse pose result: %v", err)
+				continue
+			}
+
+			log.Printf("[pose] Result: %+v", result)
+
+			err = redisManager.SetTaskStatus(result.VideoID, "pose", result.Status)
+			if err != nil {
+				log.Printf("Failed to update Redis for pose: %v", err)
+			}
+
+			if result.Status == "success" {
+				videoID, err := strconv.ParseInt(result.VideoID, 10, 64)
+				if err != nil {
+					log.Printf("Failed to parse video ID: %v", err)
+					continue
+				}
+				res, err := grpcClient.DBService.SaveAnalysis(context.Background(), &dbPb.VideoAnalysisRequest{
+					VideoId:   videoID,
+					Bucket:    result.Bucket,
+					ObjectKey: result.ObjectKey,
+					Type:      "pose",
+				})
+				if err != nil {
+					log.Printf("Failed to save analysis in DB: %v", err)
+					continue
+				}
+				if !res.Success {
+					log.Printf("Failed to save analysis in DB: %s", res.Message)
+				} else {
+					log.Printf("Pose analysis saved successfully in DB")
 				}
 			}
 		}

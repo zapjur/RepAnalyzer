@@ -2,7 +2,9 @@
 # Edit at https://www.toptal.com/developers/gitignore?templates=goland,intellij,java,react,reactnative,dotenv
 
 ### dotenv ###
-pose-estimation
+.venv/
+**/output/
+*.csvn
 .venv
 .venv311
 test-files

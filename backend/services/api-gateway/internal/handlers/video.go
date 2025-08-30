@@ -211,11 +211,11 @@ func (h *VideoHandler) GetVideoAnalysis(w http.ResponseWriter, r *http.Request) 
 		i := i
 		wg.Add(1)
 		sem <- struct{}{}
-		log.Println("Fetching presigned URL for video analysis:", vids[i].VideoId, vids[i].Bucket, vids[i].ObjectKey)
+		log.Println("Fetching presigned URL for video analysis:", vids[i].VideoId, vids[i].Bucket, vids[i].ObjectKey, vids[i].Type)
 		go func() {
 			defer wg.Done()
 			defer func() { <-sem }()
-			urlStr := fetchPresignedAnalysisURL(r.Context(), authHeader, vids[i].VideoId, vids[i].Bucket, vids[i].ObjectKey)
+			urlStr, csvUrl := fetchPresignedAnalysisURL(r.Context(), authHeader, vids[i].VideoId, vids[i].Bucket, vids[i].ObjectKey, vids[i].Type)
 			out[i] = types.VideoAnalysisWithURL{
 				Id:        vids[i].Id,
 				Bucket:    vids[i].Bucket,
@@ -223,6 +223,7 @@ func (h *VideoHandler) GetVideoAnalysis(w http.ResponseWriter, r *http.Request) 
 				Type:      vids[i].Type,
 				VideoId:   vids[i].VideoId,
 				Url:       urlStr,
+				CsvUrl:    csvUrl,
 			}
 			log.Println(out)
 		}()

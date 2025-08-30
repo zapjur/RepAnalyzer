@@ -3,7 +3,6 @@ import numpy as np
 import cv2
 from ultralytics import YOLO
 from config import MODEL_PATH, MINIO_CLIENT, DEFAULT_METERS_PER_PIXEL
-from rabbit.publisher import publish_result
 
 MODEL = YOLO(MODEL_PATH)
 ASSUMED_PLATE_DIAM_M = 0.45
@@ -39,11 +38,10 @@ def _h264_faststart(src, dst):
         dst
     ], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
-async def process_task(data):
+def process_task(data):
     video_id = data["video_id"]
     bucket = data["bucket"]
     object_key = data["object_key"]
-    reply_queue = data["reply_queue"]
 
     tmp_in = f"/tmp/{video_id}.mp4"
     tmp_out = f"/tmp/{video_id}_out.mp4"
@@ -154,4 +152,4 @@ async def process_task(data):
         except Exception:
             pass
 
-    await publish_result(reply_queue, result)
+    return result

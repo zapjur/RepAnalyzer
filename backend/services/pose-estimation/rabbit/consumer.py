@@ -3,7 +3,7 @@ import aio_pika
 import json
 import logging
 from config import TASK_QUEUE, MAX_CONCURRENT_TASKS
-from processing.barpath import process_task
+from processing.pose_estimation import run_pipeline_sync
 from rabbit.publisher import publish_result
 
 logging.basicConfig(level=logging.INFO)
@@ -18,14 +18,14 @@ async def handle_message(message: aio_pika.IncomingMessage):
             video_id = payload.get("video_id")
             logger.info(f"Received task: {video_id}")
             try:
-                result = await asyncio.to_thread(process_task, payload)
+                result = await asyncio.to_thread(run_pipeline_sync, payload)
                 await publish_result(payload["reply_queue"], result)
                 logger.info(f"Finished task: {video_id}")
             except Exception as e:
                 logger.exception(f"Error processing message {video_id}: {e}")
                 err = {"video_id": video_id, "status": "error", "message": str(e)}
                 try:
-                    await publish_result(payload.get("reply_queue", "bar_path_results_queue"), err)
+                    await publish_result(payload.get("reply_queue", "pose_results_queue"), err)
                 except Exception:
                     logger.exception("Failed to publish error result")
 
