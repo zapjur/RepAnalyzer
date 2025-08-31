@@ -2,6 +2,7 @@ package main
 
 import (
 	"analysis-service/internal/config"
+	"analysis-service/internal/minio"
 	"analysis-service/internal/rabbitmq"
 	"context"
 	"log"
@@ -17,7 +18,9 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	rabbitClient, err := rabbitmq.ConnectToRabbitMQ(cfg.RabbitMQURI, ctx)
+	minioClient := minio.NewMinioClient(cfg)
+
+	rabbitClient, err := rabbitmq.ConnectToRabbitMQ(cfg.RabbitMQURI, ctx, minioClient)
 	if err != nil {
 		log.Fatalf("Failed to connect to RabbitMQ: %v", err)
 	}

@@ -3,6 +3,7 @@ package config
 import (
 	"github.com/joho/godotenv"
 	"os"
+	"strconv"
 )
 
 type Config struct {
@@ -10,6 +11,7 @@ type Config struct {
 	MinioEndpoint  string
 	MinioAccessKey string
 	MinioSecretKey string
+	MinieUseSSL    bool
 }
 
 func Load() *Config {
@@ -20,6 +22,7 @@ func Load() *Config {
 		MinioEndpoint:  getEnv("MINIO_ENDPOINT", "minio:9000"),
 		MinioAccessKey: getEnv("MINIO_ACCESS_KEY", "analyze_svc"),
 		MinioSecretKey: getEnv("MINIO_SECRET_KEY", "ANALYZESECRET"),
+		MinieUseSSL:    getenvBool("MINIO_USE_SSL"),
 	}
 }
 
@@ -28,4 +31,16 @@ func getEnv(key, defaultValue string) string {
 		return value
 	}
 	return defaultValue
+}
+
+func getenvBool(key string) bool {
+	v := os.Getenv(key)
+	if v == "" {
+		return false
+	}
+	b, err := strconv.ParseBool(v)
+	if err != nil {
+		return false
+	}
+	return b
 }

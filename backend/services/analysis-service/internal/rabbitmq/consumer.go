@@ -1,17 +1,11 @@
 package rabbitmq
 
 import (
+	"analysis-service/internal/processing"
+	"analysis-service/types"
 	"encoding/json"
 	"log"
 )
-
-type AnalysisRequest struct {
-	VideoID      string `json:"video_id"`
-	Bucket       string `json:"bucket"`
-	Auth0Id      string `json:"auth0_id"`
-	ReplyQueue   string `json:"reply_queue"`
-	ExerciseName string `json:"exercise_name"`
-}
 
 func (r *RabbitClient) StartConsumers() error {
 	return r.ConsumeAnalysisRequests()
@@ -47,7 +41,7 @@ func (r *RabbitClient) ConsumeAnalysisRequests() error {
 					return
 				}
 
-				var req AnalysisRequest
+				var req types.AnalysisRequest
 				if err := json.Unmarshal(msg.Body, &req); err != nil {
 					log.Printf("Failed to parse analysis request: %v", err)
 					_ = msg.Nack(false, false)
@@ -56,7 +50,12 @@ func (r *RabbitClient) ConsumeAnalysisRequests() error {
 
 				log.Printf("[analysis] Request: %+v", req)
 
-				// TODO: logic to process the analysis request
+				err = processing.GenerateAnalysis(r.Context, r.MinioClient, req)
+				if err != nil {
+					log.Printf("Failed to process analysis request: %v", err)
+					_ = msg.Nack(false, true)
+					continue
+				}
 				_ = msg.Ack(false)
 			}
 		}
