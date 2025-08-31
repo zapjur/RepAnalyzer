@@ -7,6 +7,7 @@ export type VideoAnalysis = {
     object_key: string;
     type: string;
     url: string;
+    csv_url: string | null;
     video_id: number;
 };
 
