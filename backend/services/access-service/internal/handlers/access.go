@@ -109,7 +109,7 @@ func (h *AccessHandler) GetVideoAnalysis(w http.ResponseWriter, r *http.Request)
 		}
 		out.CSVURL = &csvURL
 	}
-
+	log.Println(videoType, url, out.CSVURL)
 	w.Header().Set("Content-Type", "application/json")
 	enc := json.NewEncoder(w)
 	enc.SetEscapeHTML(false)

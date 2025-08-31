@@ -1,8 +1,6 @@
 - podstrona na wynik analizy wideo - ulepszyć
-- dodać .csv do presigned url z analysis
 - wykres prędkości sztangi z barpath
 - improve config and .env
-- pose estimation
 - dodac wiecej property do tabeli videos. ciezar, powtorzenia itp.
 - refactor kodu na czystczy
 - dodac logi

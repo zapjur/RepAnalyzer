@@ -225,13 +225,12 @@ func (h *VideoHandler) GetVideoAnalysis(w http.ResponseWriter, r *http.Request) 
 				Url:       urlStr,
 				CsvUrl:    csvUrl,
 			}
-			log.Println(out)
 		}()
 	}
 	wg.Wait()
 
 	w.Header().Set("Content-Type", "application/json")
-	log.Println("Returning video analysis response with url", out[0].Url)
+	log.Println("Returning video analysis response", out)
 	enc := json.NewEncoder(w)
 	enc.SetEscapeHTML(false)
 	if err := enc.Encode(out); err != nil {
