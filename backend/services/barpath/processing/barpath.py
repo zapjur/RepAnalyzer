@@ -42,6 +42,9 @@ def process_task(data):
     video_id = data["video_id"]
     bucket = data["bucket"]
     object_key = data["object_key"]
+    auth0id    = data["auth0_id"]
+    exercise_name = data["exercise_name"]
+    reply_queue = data["reply_queue"]
 
     tmp_in = f"/tmp/{video_id}.mp4"
     tmp_out = f"/tmp/{video_id}_out.mp4"
@@ -140,7 +143,14 @@ def process_task(data):
                 metadata={"x-amz-meta-velocity":"m/s","x-amz-meta-meters-per-pixel":str(mpp)},
             )
 
-        result = {"video_id": video_id, "status": "success", "bucket": bucket, "object_key": out_mp4_key}
+        result = {"video_id": video_id,
+                  "status": "success",
+                  "bucket": bucket,
+                  "object_key": out_mp4_key,
+                  "auth0_id": auth0id,
+                  "exercise_name": exercise_name,
+                  "reply_queue": reply_queue
+                  }
     except Exception as e:
         result = {"video_id": video_id, "status": "error", "message": str(e)}
     finally:

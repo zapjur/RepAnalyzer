@@ -3,43 +3,27 @@ package rabbitmq
 import (
 	"context"
 	"encoding/json"
-	"github.com/streadway/amqp"
 	"log"
 	"orchestrator/internal/client"
 	"orchestrator/internal/redis"
 	dbPb "orchestrator/proto/db"
+	"orchestrator/types"
 	"strconv"
 )
 
-type BarpathResult struct {
-	VideoID   string `json:"video_id"`
-	Status    string `json:"status"`
-	Bucket    string `json:"bucket,omitempty"`
-	ObjectKey string `json:"object_key,omitempty"`
-	Message   string `json:"message,omitempty"`
-}
-
-type PoseResult struct {
-	VideoID   string `json:"video_id"`
-	Status    string `json:"status"`
-	Bucket    string `json:"bucket,omitempty"`
-	ObjectKey string `json:"object_key,omitempty"`
-	Message   string `json:"message,omitempty"`
-}
-
-func StartConsumers(ch *amqp.Channel, redisManager *redis.RedisManager, grpcClient *client.Client) {
-	if err := ConsumeBarpathResults(ch, redisManager, grpcClient); err != nil {
+func (r *RabbitClient) StartConsumers(redisManager *redis.RedisManager, grpcClient *client.Client) {
+	if err := r.ConsumeBarpathResults(redisManager, grpcClient); err != nil {
 		log.Fatalf("Failed to start Barpath consumer: %v", err)
 	}
 
-	if err := ConsumePoseResults(ch, redisManager, grpcClient); err != nil {
+	if err := r.ConsumePoseResults(redisManager, grpcClient); err != nil {
 		log.Fatalf("Failed to start Pose consumer: %v", err)
 	}
 
 }
 
-func ConsumeBarpathResults(ch *amqp.Channel, redisManager *redis.RedisManager, grpcClient *client.Client) error {
-	msgs, err := ch.Consume(
+func (r *RabbitClient) ConsumeBarpathResults(redisManager *redis.RedisManager, grpcClient *client.Client) error {
+	msgs, err := r.Channel.Consume(
 		"bar_path_results_queue",
 		"",
 		true,
@@ -54,7 +38,7 @@ func ConsumeBarpathResults(ch *amqp.Channel, redisManager *redis.RedisManager, g
 
 	go func() {
 		for msg := range msgs {
-			var result BarpathResult
+			var result types.TaskResult
 			if err = json.Unmarshal(msg.Body, &result); err != nil {
 				log.Printf("Failed to parse barpath result: %v", err)
 				continue
@@ -88,6 +72,27 @@ func ConsumeBarpathResults(ch *amqp.Channel, redisManager *redis.RedisManager, g
 				} else {
 					log.Printf("Analysis saved successfully in DB")
 				}
+
+				ready, err := checkReadiness(redisManager, result.VideoID)
+				if err != nil {
+					log.Printf("Failed to check readiness: %v", err)
+					continue
+				}
+				if ready {
+					err = r.PublishToQueue("analysis_queue", types.TaskMessage{
+						VideoID:      result.VideoID,
+						Bucket:       result.Bucket,
+						ObjectKey:    result.ObjectKey,
+						ReplyQueue:   "analysis_results_queue",
+						Auth0Id:      result.Auth0Id,
+						ExerciseName: result.ExerciseName,
+					})
+					if err != nil {
+						log.Printf("Failed to publish to analysis queue: %v", err)
+					} else {
+						log.Printf("Published video %s to analysis queue", result.VideoID)
+					}
+				}
 			}
 		}
 	}()
@@ -95,8 +100,8 @@ func ConsumeBarpathResults(ch *amqp.Channel, redisManager *redis.RedisManager, g
 	return nil
 }
 
-func ConsumePoseResults(ch *amqp.Channel, redisManager *redis.RedisManager, grpcClient *client.Client) error {
-	msgs, err := ch.Consume(
+func (r *RabbitClient) ConsumePoseResults(redisManager *redis.RedisManager, grpcClient *client.Client) error {
+	msgs, err := r.Channel.Consume(
 		"pose_results_queue",
 		"",
 		true,
@@ -111,7 +116,7 @@ func ConsumePoseResults(ch *amqp.Channel, redisManager *redis.RedisManager, grpc
 
 	go func() {
 		for msg := range msgs {
-			var result PoseResult
+			var result types.TaskResult
 			if err = json.Unmarshal(msg.Body, &result); err != nil {
 				log.Printf("Failed to parse pose result: %v", err)
 				continue
@@ -144,6 +149,27 @@ func ConsumePoseResults(ch *amqp.Channel, redisManager *redis.RedisManager, grpc
 					log.Printf("Failed to save analysis in DB: %s", res.Message)
 				} else {
 					log.Printf("Pose analysis saved successfully in DB")
+				}
+
+				ready, err := checkReadiness(redisManager, result.VideoID)
+				if err != nil {
+					log.Printf("Failed to check readiness: %v", err)
+					continue
+				}
+				if ready {
+					err = r.PublishToQueue("analysis_queue", types.TaskMessage{
+						VideoID:      result.VideoID,
+						Bucket:       result.Bucket,
+						ObjectKey:    result.ObjectKey,
+						ReplyQueue:   "analysis_results_queue",
+						Auth0Id:      result.Auth0Id,
+						ExerciseName: result.ExerciseName,
+					})
+					if err != nil {
+						log.Printf("Failed to publish to analysis queue: %v", err)
+					} else {
+						log.Printf("Published video %s to analysis queue", result.VideoID)
+					}
 				}
 			}
 		}

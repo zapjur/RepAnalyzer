@@ -2,22 +2,22 @@ package server
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"github.com/streadway/amqp"
 	"google.golang.org/grpc"
 	"log"
 	"net"
 	"orchestrator/internal/config"
+	"orchestrator/internal/rabbitmq"
 	"orchestrator/internal/redis"
 	anPb "orchestrator/proto/analysis"
+	"orchestrator/types"
 	"strings"
 )
 
 type OrchestratorServer struct {
 	anPb.UnimplementedOrchestratorServer
-	Redis         *redis.RedisManager
-	RabbitChannel *amqp.Channel
+	Redis        *redis.RedisManager
+	RabbitClient *rabbitmq.RabbitClient
 }
 
 type VideoToAnalyze struct {
@@ -28,16 +28,7 @@ type VideoToAnalyze struct {
 	VideoId      int64
 }
 
-type TaskMessage struct {
-	Bucket       string `json:"bucket"`
-	ObjectKey    string `json:"object_key"`
-	ExerciseName string `json:"exercise_name"`
-	VideoID      string `json:"video_id"`
-	Auth0Id      string `json:"auth0_id"`
-	ReplyQueue   string `json:"reply_queue"`
-}
-
-func StartGRPCServer(cfg *config.Config, redisManager *redis.RedisManager, rabbitChannel *amqp.Channel) {
+func StartGRPCServer(cfg *config.Config, redisManager *redis.RedisManager, rabbitClient *rabbitmq.RabbitClient) {
 	listener, err := net.Listen("tcp", ":"+cfg.GRPCPort)
 	if err != nil {
 		log.Fatalf("Failed to listen: %v", err)
@@ -45,8 +36,8 @@ func StartGRPCServer(cfg *config.Config, redisManager *redis.RedisManager, rabbi
 
 	grpcServer := grpc.NewServer()
 	anPb.RegisterOrchestratorServer(grpcServer, &OrchestratorServer{
-		Redis:         redisManager,
-		RabbitChannel: rabbitChannel,
+		Redis:        redisManager,
+		RabbitClient: rabbitClient,
 	})
 
 	log.Printf("Orchestrator Service running on port :%s", cfg.GRPCPort)
@@ -68,14 +59,14 @@ func (s *OrchestratorServer) AnalyzeVideo(ctx context.Context, req *anPb.VideoTo
 
 	auth0IDEdited := strings.ReplaceAll(req.Auth0Id, "|", "_")
 
-	if err := s.publishToQueue(
+	if err := s.RabbitClient.PublishToQueue(
 		"bar_path_queue",
 		buildTaskMessage(req, videoIDStr, auth0IDEdited, "bar_path_results_queue"),
 	); err != nil {
 		return errorResponse("Failed to publish bar_path task to RabbitMQ", err)
 	}
 
-	if err := s.publishToQueue(
+	if err := s.RabbitClient.PublishToQueue(
 		"pose_queue",
 		buildTaskMessage(req, videoIDStr, auth0IDEdited, "pose_results_queue"),
 	); err != nil {
@@ -88,8 +79,8 @@ func (s *OrchestratorServer) AnalyzeVideo(ctx context.Context, req *anPb.VideoTo
 	}, nil
 }
 
-func buildTaskMessage(req *anPb.VideoToAnalyzeRequest, videoIDStr, auth0IDEdited, replyQueue string) TaskMessage {
-	return TaskMessage{
+func buildTaskMessage(req *anPb.VideoToAnalyzeRequest, videoIDStr, auth0IDEdited, replyQueue string) types.TaskMessage {
+	return types.TaskMessage{
 		Bucket:       req.Bucket,
 		ObjectKey:    req.ObjectKey,
 		ExerciseName: req.ExerciseName,
@@ -97,29 +88,4 @@ func buildTaskMessage(req *anPb.VideoToAnalyzeRequest, videoIDStr, auth0IDEdited
 		Auth0Id:      auth0IDEdited,
 		ReplyQueue:   replyQueue,
 	}
-}
-
-func (s *OrchestratorServer) publishToQueue(queueName string, msg TaskMessage) error {
-	taskBody, err := json.Marshal(msg)
-	if err != nil {
-		log.Printf("Failed to marshal task message: %v", err)
-		return fmt.Errorf("marshal error: %w", err)
-	}
-
-	if err := s.RabbitChannel.Publish(
-		"",
-		queueName,
-		false,
-		false,
-		amqp.Publishing{
-			ContentType:  "application/json",
-			Body:         taskBody,
-			DeliveryMode: amqp.Persistent,
-		},
-	); err != nil {
-		log.Printf("Failed to publish message to RabbitMQ: %v", err)
-		return fmt.Errorf("publish error: %w", err)
-	}
-
-	return nil
 }

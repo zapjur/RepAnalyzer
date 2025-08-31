@@ -33,6 +33,10 @@ def run_pipeline_sync(data: dict) -> dict:
     video_id    = data["video_id"]
     bucket      = data["bucket"]
     object_key  = data["object_key"]
+    auth0id    = data["auth0_id"]
+    exercise_name = data["exercise_name"]
+    reply_queue = data["reply_queue"]
+
 
     tmp_in  = f"/tmp/pose_{video_id}.mp4"
     tmp_out = f"/tmp/pose_{video_id}_raw.mp4"
@@ -135,6 +139,9 @@ def run_pipeline_sync(data: dict) -> dict:
             "status": "success",
             "bucket": bucket,
             "object_key": out_mp4_key,
+            "auth0_id": auth0id,
+            "exercise_name": exercise_name,
+            "reply_queue": reply_queue
         }
     except Exception as e:
         return {"video_id": data.get("video_id"), "status": "error", "message": str(e)}

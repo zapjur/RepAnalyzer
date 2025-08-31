@@ -13,15 +13,15 @@ func main() {
 
 	cfg := config.Load()
 
-	rabbitConn, rabbitChannel, err := rabbitmq.ConnectToRabbitMQ(cfg.RabbitMQURI)
+	rabbitClient, err := rabbitmq.ConnectToRabbitMQ(cfg.RabbitMQURI)
 	if err != nil {
 		log.Fatalf("Failed to connect to RabbitMQ: %v", err)
 	}
-	defer rabbitConn.Close()
-	defer rabbitChannel.Close()
+	defer rabbitClient.Channel.Close()
+	defer rabbitClient.Connection.Close()
 
 	queues := []string{"bar_path_queue", "bar_path_results_queue", "pose_queue", "pose_results_queue", "analysis_queue", "analysis_results_queue"}
-	err = rabbitmq.DeclareQueues(rabbitChannel, queues)
+	err = rabbitClient.DeclareQueues(queues)
 	if err != nil {
 		log.Fatalf("Failed to declare RabbitMQ queues: %v", err)
 	}
@@ -40,7 +40,7 @@ func main() {
 	}
 	defer grpcClient.Close()
 
-	rabbitmq.StartConsumers(rabbitChannel, redisManager, grpcClient)
+	rabbitClient.StartConsumers(redisManager, grpcClient)
 
-	server.StartGRPCServer(cfg, redisManager, rabbitChannel)
+	server.StartGRPCServer(cfg, redisManager, rabbitClient)
 }

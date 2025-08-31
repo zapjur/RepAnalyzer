@@ -1,13 +1,20 @@
 package rabbitmq
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/streadway/amqp"
 	"log"
+	"orchestrator/types"
 	"time"
 )
 
-func ConnectToRabbitMQ(uri string) (*amqp.Connection, *amqp.Channel, error) {
+type RabbitClient struct {
+	Connection *amqp.Connection
+	Channel    *amqp.Channel
+}
+
+func ConnectToRabbitMQ(uri string) (*RabbitClient, error) {
 	const retries = 5
 	const retryDelay = 5 * time.Second
 
@@ -21,7 +28,7 @@ func ConnectToRabbitMQ(uri string) (*amqp.Connection, *amqp.Channel, error) {
 			channel, err = conn.Channel()
 			if err == nil {
 				log.Println("Successfully connected to RabbitMQ.")
-				return conn, channel, nil
+				return &RabbitClient{conn, channel}, nil
 			}
 		}
 
@@ -29,12 +36,12 @@ func ConnectToRabbitMQ(uri string) (*amqp.Connection, *amqp.Channel, error) {
 		time.Sleep(retryDelay)
 	}
 
-	return nil, nil, fmt.Errorf("failed to connect to RabbitMQ after %d retries: %w", retries, err)
+	return nil, fmt.Errorf("failed to connect to RabbitMQ after %d retries: %w", retries, err)
 }
 
-func DeclareQueues(channel *amqp.Channel, queues []string) error {
+func (r *RabbitClient) DeclareQueues(queues []string) error {
 	for _, queue := range queues {
-		_, err := channel.QueueDeclare(
+		_, err := r.Channel.QueueDeclare(
 			queue, // queue name
 			true,  // durable
 			false, // delete when unused
@@ -48,5 +55,30 @@ func DeclareQueues(channel *amqp.Channel, queues []string) error {
 		}
 		log.Printf("Queue '%s' declared successfully.", queue)
 	}
+	return nil
+}
+
+func (r *RabbitClient) PublishToQueue(queueName string, msg types.TaskMessage) error {
+	taskBody, err := json.Marshal(msg)
+	if err != nil {
+		log.Printf("Failed to marshal task message: %v", err)
+		return fmt.Errorf("marshal error: %w", err)
+	}
+
+	if err := r.Channel.Publish(
+		"",
+		queueName,
+		false,
+		false,
+		amqp.Publishing{
+			ContentType:  "application/json",
+			Body:         taskBody,
+			DeliveryMode: amqp.Persistent,
+		},
+	); err != nil {
+		log.Printf("Failed to publish message to RabbitMQ: %v", err)
+		return fmt.Errorf("publish error: %w", err)
+	}
+
 	return nil
 }
