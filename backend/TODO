@@ -1,5 +1,4 @@
 - podstrona na wynik analizy wideo - ulepszyć
-- wykres prędkości sztangi z barpath
 - improve config and .env
 - dodac wiecej property do tabeli videos. ciezar, powtorzenia itp.
 - refactor kodu na czystczy
