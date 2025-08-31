@@ -1,13 +1,20 @@
 package rabbitmq
 
 import (
+	"context"
 	"fmt"
 	"github.com/streadway/amqp"
 	"log"
 	"time"
 )
 
-func ConnectToRabbitMQ(uri string) (*amqp.Connection, *amqp.Channel, error) {
+type RabbitClient struct {
+	Connection *amqp.Connection
+	Channel    *amqp.Channel
+	Context    context.Context
+}
+
+func ConnectToRabbitMQ(uri string, ctx context.Context) (*RabbitClient, error) {
 	const retries = 5
 	const retryDelay = 5 * time.Second
 
@@ -21,7 +28,7 @@ func ConnectToRabbitMQ(uri string) (*amqp.Connection, *amqp.Channel, error) {
 			channel, err = conn.Channel()
 			if err == nil {
 				log.Println("Successfully connected to RabbitMQ.")
-				return conn, channel, nil
+				return &RabbitClient{conn, channel, ctx}, nil
 			}
 		}
 
@@ -29,5 +36,5 @@ func ConnectToRabbitMQ(uri string) (*amqp.Connection, *amqp.Channel, error) {
 		time.Sleep(retryDelay)
 	}
 
-	return nil, nil, fmt.Errorf("failed to connect to RabbitMQ after %d retries: %w", retries, err)
+	return nil, fmt.Errorf("failed to connect to RabbitMQ after %d retries: %w", retries, err)
 }

@@ -14,17 +14,17 @@ func main() {
 
 	cfg := config.Load()
 
-	rabbitConn, rabbitChannel, err := rabbitmq.ConnectToRabbitMQ(cfg.RabbitMQURI)
-	if err != nil {
-		log.Fatalf("Failed to connect to RabbitMQ: %v", err)
-	}
-	defer rabbitConn.Close()
-	defer rabbitChannel.Close()
-
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	if err := rabbitmq.StartConsumers(ctx, rabbitChannel); err != nil {
+	rabbitClient, err := rabbitmq.ConnectToRabbitMQ(cfg.RabbitMQURI, ctx)
+	if err != nil {
+		log.Fatalf("Failed to connect to RabbitMQ: %v", err)
+	}
+	defer rabbitClient.Channel.Close()
+	defer rabbitClient.Connection.Close()
+
+	if err := rabbitClient.StartConsumers(); err != nil {
 		log.Fatalf("Failed to start consumers: %v", err)
 	}
 

@@ -1,9 +1,7 @@
 package rabbitmq
 
 import (
-	"context"
 	"encoding/json"
-	"github.com/streadway/amqp"
 	"log"
 )
 
@@ -15,17 +13,17 @@ type AnalysisRequest struct {
 	ExerciseName string `json:"exercise_name"`
 }
 
-func StartConsumers(ctx context.Context, ch *amqp.Channel) error {
-	return ConsumeAnalysisRequests(ctx, ch)
+func (r *RabbitClient) StartConsumers() error {
+	return r.ConsumeAnalysisRequests()
 }
 
-func ConsumeAnalysisRequests(ctx context.Context, ch *amqp.Channel) error {
-	if err := ch.Qos(10, 0, false); err != nil {
+func (r *RabbitClient) ConsumeAnalysisRequests() error {
+	if err := r.Channel.Qos(10, 0, false); err != nil {
 		return err
 	}
 
 	const consumerTag = "analysis-consumer"
-	msgs, err := ch.Consume(
+	msgs, err := r.Channel.Consume(
 		"analysis_queue",
 		consumerTag,
 		false,
@@ -41,8 +39,8 @@ func ConsumeAnalysisRequests(ctx context.Context, ch *amqp.Channel) error {
 	go func() {
 		for {
 			select {
-			case <-ctx.Done():
-				_ = ch.Cancel(consumerTag, false)
+			case <-r.Context.Done():
+				_ = r.Channel.Cancel(consumerTag, false)
 				return
 			case msg, ok := <-msgs:
 				if !ok {
