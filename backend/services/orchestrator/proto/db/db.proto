@@ -89,6 +89,17 @@ message GetVideoAnalysisRequest {
   int64 video_id = 1;
 }
 
+message SaveAnalysisJSONRequest {
+  int64 video_id = 1;
+  string payload_json = 2;
+}
+
+message SaveAnalysisJSONResponse {
+  bool success = 1;
+  string message = 2;
+  int64 analysis_id = 3;
+}
+
 service DBService {
   rpc GetUser(GetUserRequest) returns (GetUserResponse);
   rpc SaveUploadedVideo(UploadVideoRequest) returns (UploadVideoResponse);
@@ -96,4 +107,5 @@ service DBService {
   rpc SaveAnalysis(VideoAnalysisRequest) returns (SaveAnalysisResponse);
   rpc CheckOwnership(CheckOwnershipRequest) returns (CheckOwnershipResponse);
   rpc GetVideoAnalysis(GetVideoAnalysisRequest) returns (GetVideoAnalysisResponse);
+  rpc SaveAnalysisJSON(SaveAnalysisJSONRequest) returns (SaveAnalysisJSONResponse);
 }

@@ -7,22 +7,24 @@ import (
 )
 
 type Config struct {
-	RabbitMQURI    string
-	MinioEndpoint  string
-	MinioAccessKey string
-	MinioSecretKey string
-	MinieUseSSL    bool
+	RabbitMQURI      string
+	MinioEndpoint    string
+	MinioAccessKey   string
+	MinioSecretKey   string
+	MinieUseSSL      bool
+	DBServiceAddress string
 }
 
 func Load() *Config {
 	_ = godotenv.Load()
 
 	return &Config{
-		RabbitMQURI:    getEnv("RABBITMQ_URI", "amqp://guest:guest@rabbitmq:5672/"),
-		MinioEndpoint:  getEnv("MINIO_ENDPOINT", "minio:9000"),
-		MinioAccessKey: getEnv("MINIO_ACCESS_KEY", "analyze_svc"),
-		MinioSecretKey: getEnv("MINIO_SECRET_KEY", "ANALYZESECRET"),
-		MinieUseSSL:    getenvBool("MINIO_USE_SSL"),
+		RabbitMQURI:      getEnv("RABBITMQ_URI", "amqp://guest:guest@rabbitmq:5672/"),
+		MinioEndpoint:    getEnv("MINIO_ENDPOINT", "minio:9000"),
+		MinioAccessKey:   getEnv("MINIO_ACCESS_KEY", "analyze_svc"),
+		MinioSecretKey:   getEnv("MINIO_SECRET_KEY", "ANALYZESECRET"),
+		MinieUseSSL:      getenvBool("MINIO_USE_SSL"),
+		DBServiceAddress: getEnv("DB_SERVICE_ADDRESS", "db-service:50051"),
 	}
 }
 

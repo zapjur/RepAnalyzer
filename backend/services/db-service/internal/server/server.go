@@ -214,3 +214,22 @@ func (s *DBServer) GetVideoAnalysis(ctx context.Context, req *pb.GetVideoAnalysi
 		Analyses: analysisInfos,
 	}, nil
 }
+
+func (s *DBServer) SaveAnalysisJSON(ctx context.Context, req *pb.SaveAnalysisJSONRequest) (*pb.SaveAnalysisJSONResponse, error) {
+	log.Printf("SaveAnalysisJSON: video_id=%d payload_len=%d", req.VideoId, len(req.PayloadJson))
+
+	id, err := s.repo.SaveAnalysisJSON(req.VideoId, req.PayloadJson)
+	if err != nil {
+		return &pb.SaveAnalysisJSONResponse{
+			Success:    false,
+			Message:    "Database error: " + err.Error(),
+			AnalysisId: 0,
+		}, err
+	}
+
+	return &pb.SaveAnalysisJSONResponse{
+		Success:    true,
+		Message:    "Analysis JSON saved successfully",
+		AnalysisId: id,
+	}, nil
+}

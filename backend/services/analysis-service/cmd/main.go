@@ -1,6 +1,7 @@
 package main
 
 import (
+	"analysis-service/internal/client"
 	"analysis-service/internal/config"
 	"analysis-service/internal/minio"
 	"analysis-service/internal/rabbitmq"
@@ -20,7 +21,13 @@ func main() {
 
 	minioClient := minio.NewMinioClient(cfg)
 
-	rabbitClient, err := rabbitmq.ConnectToRabbitMQ(cfg.RabbitMQURI, ctx, minioClient)
+	grpcClient, err := client.NewClient(cfg.DBServiceAddress)
+	if err != nil {
+		log.Fatalf("failed to setup gRPC DB client: %v", err)
+	}
+	defer grpcClient.Close()
+
+	rabbitClient, err := rabbitmq.ConnectToRabbitMQ(cfg.RabbitMQURI, ctx, minioClient, grpcClient)
 	if err != nil {
 		log.Fatalf("Failed to connect to RabbitMQ: %v", err)
 	}

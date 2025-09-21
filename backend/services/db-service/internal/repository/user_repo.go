@@ -164,3 +164,18 @@ func (r *Repository) GetVideoAnalysis(videoID int64) ([]VideoAnalysis, error) {
 
 	return analyses, nil
 }
+
+func (r *Repository) SaveAnalysisJSON(videoID int64, payloadJSON string) (int64, error) {
+	var id int64
+	err := r.DB.QueryRow(
+		context.Background(),
+		`INSERT INTO analysis_json (video_id, payload)
+         VALUES ($1, $2::jsonb)
+         RETURNING id`,
+		videoID, payloadJSON,
+	).Scan(&id)
+	if err != nil {
+		return 0, fmt.Errorf("could not insert analysis_json for video_id %d: %w", videoID, err)
+	}
+	return id, nil
+}

@@ -1,6 +1,9 @@
 package processing
 
-import "time"
+import (
+	"encoding/json"
+	"time"
+)
 
 type Point struct {
 	X, Y  float64
@@ -48,7 +51,7 @@ type Report struct {
 	Exercise    string             `json:"exercise"`
 	Summary     map[string]int     `json:"summary"`
 	Reps        []RepReport        `json:"reps"`
-	LLMFeedback string             `json:"llm_feedback"`
+	LLMFeedback json.RawMessage    `json:"llm_feedback,omitempty"`
 	Version     string             `json:"version"`
 	Thresholds  map[string]float64 `json:"thresholds"`
 	Meta        map[string]any     `json:"meta"`

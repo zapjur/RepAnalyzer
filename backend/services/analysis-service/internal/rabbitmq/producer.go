@@ -1,6 +1,7 @@
 package rabbitmq
 
 import (
+	"analysis-service/internal/client"
 	"analysis-service/internal/minio"
 	"context"
 	"fmt"
@@ -14,9 +15,10 @@ type RabbitClient struct {
 	Channel     *amqp.Channel
 	Context     context.Context
 	MinioClient *minio.Client
+	grpcClient  *client.Client
 }
 
-func ConnectToRabbitMQ(uri string, ctx context.Context, mino *minio.Client) (*RabbitClient, error) {
+func ConnectToRabbitMQ(uri string, ctx context.Context, mino *minio.Client, grpc *client.Client) (*RabbitClient, error) {
 	const retries = 5
 	const retryDelay = 5 * time.Second
 
@@ -30,7 +32,7 @@ func ConnectToRabbitMQ(uri string, ctx context.Context, mino *minio.Client) (*Ra
 			channel, err = conn.Channel()
 			if err == nil {
 				log.Println("Successfully connected to RabbitMQ.")
-				return &RabbitClient{conn, channel, ctx, mino}, nil
+				return &RabbitClient{conn, channel, ctx, mino, grpc}, nil
 			}
 		}
 

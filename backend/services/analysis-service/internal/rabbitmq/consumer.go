@@ -50,7 +50,7 @@ func (r *RabbitClient) ConsumeAnalysisRequests() error {
 
 				log.Printf("[analysis] Request: %+v", req)
 
-				err = processing.GenerateAnalysis(r.Context, r.MinioClient, req)
+				err = processing.GenerateAnalysis(r.Context, r.MinioClient, r.grpcClient, req)
 				if err != nil {
 					log.Printf("Failed to process analysis request: %v", err)
 					_ = msg.Nack(false, true)

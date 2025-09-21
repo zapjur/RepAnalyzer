@@ -1,7 +1,9 @@
 package processing
 
 import (
+	"analysis-service/internal/client"
 	"analysis-service/internal/minio"
+	db "analysis-service/proto"
 	"analysis-service/types"
 	"context"
 	"encoding/json"
@@ -10,6 +12,7 @@ import (
 	"math"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -36,7 +39,7 @@ func nearestPoseByTime(pose []PoseSample, t, fps float64) (PoseSample, bool) {
 	return PoseSample{}, false
 }
 
-func GenerateAnalysis(ctx context.Context, minioClient *minio.Client, req types.AnalysisRequest) error {
+func GenerateAnalysis(ctx context.Context, minioClient *minio.Client, grpcClient *client.Client, req types.AnalysisRequest) error {
 	tmpDir, err := downloadCSVToTmp(ctx, minioClient, req.Bucket, req.ObjectKey, req.Auth0Id)
 	if err != nil {
 		return err
@@ -240,7 +243,7 @@ func GenerateAnalysis(ctx context.Context, minioClient *minio.Client, req types.
 		Exercise:    ex,
 		Summary:     summarize(out),
 		Reps:        out,
-		LLMFeedback: "",
+		LLMFeedback: nil,
 		Version:     "heuristics-1.2",
 		Thresholds:  thresholds,
 		Meta:        map[string]any{"fps": fps},
@@ -251,10 +254,29 @@ func GenerateAnalysis(ctx context.Context, minioClient *minio.Client, req types.
 	if err != nil {
 		log.Printf("LLM feedback error: %v", err)
 	} else {
-		rep.LLMFeedback = fb
+		rep.LLMFeedback = json.RawMessage(fb)
 	}
 
-	b, _ := json.MarshalIndent(rep, "", "  ")
+	b, _ := json.Marshal(rep)
 	log.Printf("ANALYSIS REPORT\n%s\n", string(b))
+
+	vidID, err := strconv.ParseInt(req.VideoID, 10, 64)
+	if err != nil {
+		return fmt.Errorf("invalid video ID: %w", err)
+	}
+
+	resp, err := grpcClient.DBService.SaveAnalysisJSON(ctx, &db.SaveAnalysisJSONRequest{
+		VideoId:     vidID,
+		PayloadJson: string(b),
+	})
+	if err != nil {
+		log.Printf("SaveAnalysisJSON error: %v", err)
+		return fmt.Errorf("save analysis via gRPC: %w", err)
+	}
+	if !resp.Success {
+		log.Printf("SaveAnalysisJSON failed: %s", resp.Message)
+		return fmt.Errorf("save analysis failed: %s", resp.Message)
+	}
+
 	return nil
 }
