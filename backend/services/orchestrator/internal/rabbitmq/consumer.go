@@ -83,7 +83,6 @@ func (r *RabbitClient) ConsumeBarpathResults(redisManager *redis.RedisManager, g
 						VideoID:      result.VideoID,
 						Bucket:       result.Bucket,
 						ObjectKey:    result.ObjectKey,
-						ReplyQueue:   "analysis_results_queue",
 						Auth0Id:      result.Auth0Id,
 						ExerciseName: result.ExerciseName,
 					})
@@ -161,7 +160,6 @@ func (r *RabbitClient) ConsumePoseResults(redisManager *redis.RedisManager, grpc
 						VideoID:      result.VideoID,
 						Bucket:       result.Bucket,
 						ObjectKey:    result.ObjectKey,
-						ReplyQueue:   "analysis_results_queue",
 						Auth0Id:      result.Auth0Id,
 						ExerciseName: result.ExerciseName,
 					})

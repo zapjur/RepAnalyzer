@@ -20,7 +20,7 @@ func main() {
 	defer rabbitClient.Channel.Close()
 	defer rabbitClient.Connection.Close()
 
-	queues := []string{"bar_path_queue", "bar_path_results_queue", "pose_queue", "pose_results_queue", "analysis_queue", "analysis_results_queue"}
+	queues := []string{"bar_path_queue", "bar_path_results_queue", "pose_queue", "pose_results_queue", "analysis_queue"}
 	err = rabbitClient.DeclareQueues(queues)
 	if err != nil {
 		log.Fatalf("Failed to declare RabbitMQ queues: %v", err)
