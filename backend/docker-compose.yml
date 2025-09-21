@@ -50,6 +50,7 @@ services:
       MINIO_ACCESS_KEY: ${ANALYZE_USER:-analyze_svc}
       MINIO_SECRET_KEY: ${ANALYZE_SECRET:-ANALYZESECRET}
       MINIO_USE_SSL: "false"
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
     networks: [app]
 
   access-service:

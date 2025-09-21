@@ -30,3 +30,12 @@ CREATE TABLE IF NOT EXISTS video_analysis (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
 
+CREATE TABLE IF NOT EXISTS analysis_json (
+    id         BIGSERIAL PRIMARY KEY,
+    video_id   BIGINT NOT NULL REFERENCES videos(id) ON DELETE CASCADE,
+    payload    JSONB  NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW()
+    );
+
+CREATE INDEX IF NOT EXISTS idx_analysis_json_video_id ON analysis_json(video_id);
+

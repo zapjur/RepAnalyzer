@@ -246,6 +246,14 @@ func GenerateAnalysis(ctx context.Context, minioClient *minio.Client, req types.
 		Meta:        map[string]any{"fps": fps},
 		CreatedAt:   time.Now().UTC(),
 	}
+
+	fb, err := GenerateLLMFeedback(ctx, rep)
+	if err != nil {
+		log.Printf("LLM feedback error: %v", err)
+	} else {
+		rep.LLMFeedback = fb
+	}
+
 	b, _ := json.MarshalIndent(rep, "", "  ")
 	log.Printf("ANALYSIS REPORT\n%s\n", string(b))
 	return nil
