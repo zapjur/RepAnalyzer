@@ -6,6 +6,7 @@ import (
 	"fmt"
 	miniosdk "github.com/minio/minio-go/v7"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 	"time"
@@ -14,7 +15,7 @@ import (
 func downloadCSVToTmp(ctx context.Context, minioClient *minio.Client, bucket, objectKey, auth0ID string) (string, error) {
 	if _, ok := ctx.Deadline(); !ok {
 		var cancel context.CancelFunc
-		ctx, cancel = context.WithTimeout(ctx, 30*time.Second)
+		ctx, cancel = context.WithTimeout(ctx, 60*time.Second)
 		defer cancel()
 	}
 
@@ -23,42 +24,78 @@ func downloadCSVToTmp(ctx context.Context, minioClient *minio.Client, bucket, ob
 		return "", fmt.Errorf("mkdir %s: %w", base, err)
 	}
 
-	rootDir := filepath.Dir(filepath.Dir(objectKey))
-
-	stem := strings.TrimSuffix(filepath.Base(objectKey), filepath.Ext(objectKey))
-
-	var poseCSV, barCSV string
-	switch {
-	case strings.Contains(objectKey, "/pose/"):
-		poseCSV = stem + ".csv"
-		barCSV = strings.TrimSuffix(stem, "-pose") + "-barpath.csv"
-	case strings.Contains(objectKey, "/barpath/"):
-		barCSV = stem + ".csv"
-		poseCSV = strings.TrimSuffix(stem, "-barpath") + "-pose.csv"
-	default:
-		poseCSV = stem + "-pose.csv"
-		barCSV = stem + "-barpath.csv"
-	}
-
-	poseKey := filepath.ToSlash(filepath.Join(rootDir, "pose", poseCSV))
-	barKey := filepath.ToSlash(filepath.Join(rootDir, "barpath", barCSV))
-
-	tmpDir, err := os.MkdirTemp(base, "analysis_csv_")
+	tmp, err := os.MkdirTemp(base, "analysis_csv_")
 	if err != nil {
 		return "", fmt.Errorf("mkdtemp: %w", err)
 	}
 
-	poseDst := filepath.Join(tmpDir, "pose.csv")
-	barDst := filepath.Join(tmpDir, "barpath.csv")
+	rootDir := filepath.Dir(filepath.Dir(objectKey))
+	rootDir = strings.ReplaceAll(rootDir, "\\", "/")
 
-	if err = minioClient.Minio.FGetObject(ctx, bucket, poseKey, poseDst, miniosdk.GetObjectOptions{}); err != nil {
-		_ = os.RemoveAll(tmpDir)
-		return "", fmt.Errorf("download pose CSV (%s/%s): %w", bucket, poseKey, err)
+	posePrefix := path.Clean(path.Join(rootDir, "pose")) + "/"
+	barPrefix := path.Clean(path.Join(rootDir, "barpath")) + "/"
+
+	poseCSVKey, poseMetaKey, err := findOneCSVAndMeta(ctx, minioClient, bucket, posePrefix)
+	if err != nil {
+		return "", fmt.Errorf("list pose under %q: %w", posePrefix, err)
 	}
-	if err = minioClient.Minio.FGetObject(ctx, bucket, barKey, barDst, miniosdk.GetObjectOptions{}); err != nil {
-		_ = os.RemoveAll(tmpDir)
-		return "", fmt.Errorf("download barpath CSV (%s/%s): %w", bucket, barKey, err)
+	barCSVKey, barMetaKey, err := findOneCSVAndMeta(ctx, minioClient, bucket, barPrefix)
+	if err != nil {
+		return "", fmt.Errorf("list barpath under %q: %w", barPrefix, err)
 	}
 
-	return tmpDir, nil
+	poseDst := filepath.Join(tmp, "pose.csv")
+	barDst := filepath.Join(tmp, "barpath.csv")
+	poseMetaDst := filepath.Join(tmp, "pose_meta.json")
+	barMetaDst := filepath.Join(tmp, "barpath_meta.json")
+
+	if err := minioClient.Minio.FGetObject(ctx, bucket, poseCSVKey, poseDst, miniosdk.GetObjectOptions{}); err != nil {
+		return "", fmt.Errorf("download pose csv (%s/%s): %w", bucket, poseCSVKey, err)
+	}
+	if err := minioClient.Minio.FGetObject(ctx, bucket, barCSVKey, barDst, miniosdk.GetObjectOptions{}); err != nil {
+		return "", fmt.Errorf("download barpath csv (%s/%s): %w", bucket, barCSVKey, err)
+	}
+
+	if poseMetaKey != "" {
+		_ = minioClient.Minio.FGetObject(ctx, bucket, poseMetaKey, poseMetaDst, miniosdk.GetObjectOptions{})
+	}
+	if barMetaKey != "" {
+		_ = minioClient.Minio.FGetObject(ctx, bucket, barMetaKey, barMetaDst, miniosdk.GetObjectOptions{})
+	}
+
+	return tmp, nil
+}
+
+func findOneCSVAndMeta(ctx context.Context, minioClient *minio.Client, bucket, prefix string) (csvKey, metaKey string, err error) {
+	var firstCSV, firstMeta string
+
+	for obj := range minioClient.Minio.ListObjects(ctx, bucket, miniosdk.ListObjectsOptions{
+		Prefix:    prefix,
+		Recursive: true,
+	}) {
+		if obj.Err != nil {
+			return "", "", obj.Err
+		}
+		key := obj.Key
+		l := strings.ToLower(key)
+
+		if strings.HasSuffix(l, ".csv") && firstCSV == "" {
+			firstCSV = key
+		}
+
+		if (strings.HasSuffix(l, "_meta.json") ||
+			strings.HasSuffix(l, "-meta.json") ||
+			strings.HasSuffix(l, "meta.json")) && firstMeta == "" {
+			firstMeta = key
+		}
+
+		if firstCSV != "" && firstMeta != "" {
+			break
+		}
+	}
+
+	if firstCSV == "" {
+		return "", "", fmt.Errorf("no csv found under %s", prefix)
+	}
+	return firstCSV, firstMeta, nil
 }

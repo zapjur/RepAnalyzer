@@ -12,14 +12,18 @@ REPS ?=
 ORIG_SRC     ?= ./test-files/deadlift.mp4
 BARPATH_SRC  ?= ./test-files/deadlift-barpath.mp4
 BARPATH_CSV  ?= ./test-files/deadlift-barpath.csv
+BARPATH_META ?= ./test-files/deadlift-barpath_meta.json
 POSE_SRC     ?= ./test-files/deadlift-pose.mp4
 POSE_CSV     ?= ./test-files/deadlift-pose.csv
+POSE_META 	 ?= ./test-files/deadlift-pose_meta.json
 
 ORIG_DST     = $(BUCKET)/$(USER_PREFIX)/Deadlift/original/deadlift.mp4
-BARPATH_DST  = $(BUCKET)/$(USER_PREFIX)/Deadlift/barpath/deadlift-barpath.mp4
-BARPATH_CSV_DST  = $(BUCKET)/$(USER_PREFIX)/Deadlift/barpath/deadlift-barpath.csv
-POSE_DST     = $(BUCKET)/$(USER_PREFIX)/Deadlift/pose/deadlift-pose.mp4
-POSE_CSV_DST     = $(BUCKET)/$(USER_PREFIX)/Deadlift/pose/deadlift-pose.csv
+BARPATH_DST  = $(BUCKET)/$(USER_PREFIX)/Deadlift/barpath/deadlift.mp4
+BARPATH_CSV_DST  = $(BUCKET)/$(USER_PREFIX)/Deadlift/barpath/deadlift.csv
+BARPATH_META_DST  = $(BUCKET)/$(USER_PREFIX)/Deadlift/barpath/deadlift_meta.json
+POSE_DST     = $(BUCKET)/$(USER_PREFIX)/Deadlift/pose/deadlift.mp4
+POSE_CSV_DST     = $(BUCKET)/$(USER_PREFIX)/Deadlift/pose/deadlift.csv
+POSE_META_DST  = $(BUCKET)/$(USER_PREFIX)/Deadlift/pose/deadlift_meta.json
 
 PGHOST ?= localhost
 PGPORT ?= 5432
@@ -45,10 +49,14 @@ upload-videos: ensure-bucket
 	@mc cp $(BARPATH_SRC) $(MINIO_ALIAS)/$(BARPATH_DST)
 	@echo "Uploading barpath csv as root..."
 	@mc cp $(BARPATH_CSV) $(MINIO_ALIAS)/$(BARPATH_CSV_DST)
+	@echo "Uploading barpath metadata as root..."
+	@mc cp $(BARPATH_META) $(MINIO_ALIAS)/$(BARPATH_META_DST)
 	@echo "Uploading pose-estimation video as root..."
 	@mc cp $(POSE_SRC)    $(MINIO_ALIAS)/$(POSE_DST)
 	@echo "Uploading pose-estimation csv as root..."
 	@mc cp $(POSE_CSV)    $(MINIO_ALIAS)/$(POSE_CSV_DST)
+	@echo "Uploading pose-estimation metadata as root..."
+	@mc cp $(POSE_META)   $(MINIO_ALIAS)/$(POSE_META_DST)
 	@echo "Upload finished"
 
 db-insert:

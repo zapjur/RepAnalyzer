@@ -1,4 +1,4 @@
-import os, io, csv, subprocess
+import json, os, io, csv, subprocess
 import numpy as np
 import cv2
 from ultralytics import YOLO
@@ -142,6 +142,19 @@ def process_task(data):
                 content_type="text/csv",
                 metadata={"x-amz-meta-velocity":"m/s","x-amz-meta-meters-per-pixel":str(mpp)},
             )
+
+            meta = {
+                "fps": float(fps),
+                "width": int(width),
+                "height": int(height),
+                "origin": {"x": "right", "y": "down", "units": "pixel"},
+                "meters_per_pixel": float(mpp),
+                "notes": "bar center (cx,cy) in original video pixel coordinates; vy columns in m/s"
+            }
+            meta_key = os.path.splitext(out_csv_key)[0] + "_meta.json"
+            buf_meta = io.BytesIO(json.dumps(meta).encode("utf-8"))
+            MINIO_CLIENT.put_object(bucket, meta_key, buf_meta, buf_meta.getbuffer().nbytes,
+                                    content_type="application/json")
 
         result = {"video_id": video_id,
                   "status": "success",
