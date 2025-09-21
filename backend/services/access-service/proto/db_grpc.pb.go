@@ -25,6 +25,8 @@ const (
 	DBService_SaveAnalysis_FullMethodName            = "/db.DBService/SaveAnalysis"
 	DBService_CheckOwnership_FullMethodName          = "/db.DBService/CheckOwnership"
 	DBService_GetVideoAnalysis_FullMethodName        = "/db.DBService/GetVideoAnalysis"
+	DBService_SaveAnalysisJSON_FullMethodName        = "/db.DBService/SaveAnalysisJSON"
+	DBService_GetAnalysisJSON_FullMethodName         = "/db.DBService/GetAnalysisJSON"
 )
 
 // DBServiceClient is the client API for DBService service.
@@ -37,6 +39,8 @@ type DBServiceClient interface {
 	SaveAnalysis(ctx context.Context, in *VideoAnalysisRequest, opts ...grpc.CallOption) (*SaveAnalysisResponse, error)
 	CheckOwnership(ctx context.Context, in *CheckOwnershipRequest, opts ...grpc.CallOption) (*CheckOwnershipResponse, error)
 	GetVideoAnalysis(ctx context.Context, in *GetVideoAnalysisRequest, opts ...grpc.CallOption) (*GetVideoAnalysisResponse, error)
+	SaveAnalysisJSON(ctx context.Context, in *SaveAnalysisJSONRequest, opts ...grpc.CallOption) (*SaveAnalysisJSONResponse, error)
+	GetAnalysisJSON(ctx context.Context, in *GetAnalysisJSONRequest, opts ...grpc.CallOption) (*GetAnalysisJSONResponse, error)
 }
 
 type dBServiceClient struct {
@@ -107,6 +111,26 @@ func (c *dBServiceClient) GetVideoAnalysis(ctx context.Context, in *GetVideoAnal
 	return out, nil
 }
 
+func (c *dBServiceClient) SaveAnalysisJSON(ctx context.Context, in *SaveAnalysisJSONRequest, opts ...grpc.CallOption) (*SaveAnalysisJSONResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SaveAnalysisJSONResponse)
+	err := c.cc.Invoke(ctx, DBService_SaveAnalysisJSON_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *dBServiceClient) GetAnalysisJSON(ctx context.Context, in *GetAnalysisJSONRequest, opts ...grpc.CallOption) (*GetAnalysisJSONResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetAnalysisJSONResponse)
+	err := c.cc.Invoke(ctx, DBService_GetAnalysisJSON_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // DBServiceServer is the server API for DBService service.
 // All implementations must embed UnimplementedDBServiceServer
 // for forward compatibility.
@@ -117,6 +141,8 @@ type DBServiceServer interface {
 	SaveAnalysis(context.Context, *VideoAnalysisRequest) (*SaveAnalysisResponse, error)
 	CheckOwnership(context.Context, *CheckOwnershipRequest) (*CheckOwnershipResponse, error)
 	GetVideoAnalysis(context.Context, *GetVideoAnalysisRequest) (*GetVideoAnalysisResponse, error)
+	SaveAnalysisJSON(context.Context, *SaveAnalysisJSONRequest) (*SaveAnalysisJSONResponse, error)
+	GetAnalysisJSON(context.Context, *GetAnalysisJSONRequest) (*GetAnalysisJSONResponse, error)
 	mustEmbedUnimplementedDBServiceServer()
 }
 
@@ -144,6 +170,12 @@ func (UnimplementedDBServiceServer) CheckOwnership(context.Context, *CheckOwners
 }
 func (UnimplementedDBServiceServer) GetVideoAnalysis(context.Context, *GetVideoAnalysisRequest) (*GetVideoAnalysisResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetVideoAnalysis not implemented")
+}
+func (UnimplementedDBServiceServer) SaveAnalysisJSON(context.Context, *SaveAnalysisJSONRequest) (*SaveAnalysisJSONResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SaveAnalysisJSON not implemented")
+}
+func (UnimplementedDBServiceServer) GetAnalysisJSON(context.Context, *GetAnalysisJSONRequest) (*GetAnalysisJSONResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAnalysisJSON not implemented")
 }
 func (UnimplementedDBServiceServer) mustEmbedUnimplementedDBServiceServer() {}
 func (UnimplementedDBServiceServer) testEmbeddedByValue()                   {}
@@ -274,6 +306,42 @@ func _DBService_GetVideoAnalysis_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _DBService_SaveAnalysisJSON_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SaveAnalysisJSONRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DBServiceServer).SaveAnalysisJSON(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: DBService_SaveAnalysisJSON_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DBServiceServer).SaveAnalysisJSON(ctx, req.(*SaveAnalysisJSONRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _DBService_GetAnalysisJSON_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAnalysisJSONRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DBServiceServer).GetAnalysisJSON(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: DBService_GetAnalysisJSON_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DBServiceServer).GetAnalysisJSON(ctx, req.(*GetAnalysisJSONRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // DBService_ServiceDesc is the grpc.ServiceDesc for DBService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -304,6 +372,14 @@ var DBService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetVideoAnalysis",
 			Handler:    _DBService_GetVideoAnalysis_Handler,
+		},
+		{
+			MethodName: "SaveAnalysisJSON",
+			Handler:    _DBService_SaveAnalysisJSON_Handler,
+		},
+		{
+			MethodName: "GetAnalysisJSON",
+			Handler:    _DBService_GetAnalysisJSON_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

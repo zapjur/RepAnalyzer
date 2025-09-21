@@ -33,6 +33,13 @@ type VideoAnalysis struct {
 	CreatedAt time.Time
 }
 
+type AnalysisJSON struct {
+	ID        int64
+	VideoID   int64
+	Payload   string
+	CreatedAt time.Time
+}
+
 type Repository struct {
 	DB *pgxpool.Pool
 }
@@ -178,4 +185,24 @@ func (r *Repository) SaveAnalysisJSON(videoID int64, payloadJSON string) (int64,
 		return 0, fmt.Errorf("could not insert analysis_json for video_id %d: %w", videoID, err)
 	}
 	return id, nil
+}
+
+func (r *Repository) GetLatestAnalysisJSONByVideoID(videoID int64) (*AnalysisJSON, error) {
+	row := r.DB.QueryRow(
+		context.Background(),
+		`SELECT id, video_id, payload::text, created_at
+		   FROM analysis_json
+		  WHERE video_id = $1
+		  ORDER BY created_at DESC
+		  LIMIT 1`,
+		videoID,
+	)
+	var a AnalysisJSON
+	if err := row.Scan(&a.ID, &a.VideoID, &a.Payload, &a.CreatedAt); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("query latest analysis_json for video_id %d: %w", videoID, err)
+	}
+	return &a, nil
 }

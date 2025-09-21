@@ -1,5 +1,7 @@
 package types
 
+import "encoding/json"
+
 type VideoWithURL struct {
 	Id           int64  `json:"id"`
 	Bucket       string `json:"bucket"`
@@ -17,4 +19,9 @@ type VideoAnalysisWithURL struct {
 	Url       string  `json:"url"`
 	CsvUrl    *string `json:"csv_url,omitempty"`
 	VideoId   int64   `json:"video_id"`
+}
+
+type VideoAnalysisResponse struct {
+	Videos   []VideoAnalysisWithURL `json:"videos"`
+	Analysis json.RawMessage        `json:"analysis"`
 }

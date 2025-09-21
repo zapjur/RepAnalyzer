@@ -233,3 +233,33 @@ func (s *DBServer) SaveAnalysisJSON(ctx context.Context, req *pb.SaveAnalysisJSO
 		AnalysisId: id,
 	}, nil
 }
+
+func (s *DBServer) GetAnalysisJSON(ctx context.Context, req *pb.GetAnalysisJSONRequest) (*pb.GetAnalysisJSONResponse, error) {
+	log.Printf("GetAnalysisJSON: video_id=%d", req.VideoId)
+
+	a, err := s.repo.GetLatestAnalysisJSONByVideoID(req.VideoId)
+	if err != nil {
+		return &pb.GetAnalysisJSONResponse{
+			Success: false,
+			Message: "Database error: " + err.Error(),
+		}, err
+	}
+	if a == nil {
+		return &pb.GetAnalysisJSONResponse{
+			Success:  true,
+			Message:  "No analysis found for this video_id",
+			Analysis: nil,
+		}, nil
+	}
+
+	return &pb.GetAnalysisJSONResponse{
+		Success: true,
+		Message: "OK",
+		Analysis: &pb.AnalysisJSON{
+			Id:          a.ID,
+			VideoId:     a.VideoID,
+			PayloadJson: a.Payload,
+			CreatedAt:   a.CreatedAt.Format(time.RFC3339),
+		},
+	}, nil
+}

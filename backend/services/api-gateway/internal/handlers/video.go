@@ -7,6 +7,7 @@ import (
 	"api-gateway/internal/types"
 	"api-gateway/internal/utils"
 	dbPb "api-gateway/proto/db"
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/go-chi/chi/v5"
@@ -229,11 +230,31 @@ func (h *VideoHandler) GetVideoAnalysis(w http.ResponseWriter, r *http.Request) 
 	}
 	wg.Wait()
 
+	vidID, err := strconv.ParseInt(videoID, 10, 64)
+	if err != nil {
+		http.Error(w, "Invalid video ID", http.StatusBadRequest)
+		return
+	}
+	analysisResp, err := h.grpcDBClient.DBService.GetAnalysisJSON(context.Background(), &dbPb.GetAnalysisJSONRequest{VideoId: vidID})
+	if err != nil {
+		http.Error(w, "Failed to get analysis JSON: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if !analysisResp.Success {
+		http.Error(w, "Failed to get analysis JSON: "+analysisResp.Message, http.StatusInternalServerError)
+		return
+	}
+
+	outResp := types.VideoAnalysisResponse{
+		Videos:   out,
+		Analysis: json.RawMessage(analysisResp.Analysis.PayloadJson),
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	log.Println("Returning video analysis response", out)
 	enc := json.NewEncoder(w)
 	enc.SetEscapeHTML(false)
-	if err := enc.Encode(out); err != nil {
+	if err := enc.Encode(outResp); err != nil {
 		http.Error(w, "encode error: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
