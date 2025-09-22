@@ -72,10 +72,10 @@ db-insert:
 	PGHOST=$(PGHOST) PGPORT=$(PGPORT) PGDATABASE=$(PGDATABASE) PGUSER=$(PGUSER) PGPASSWORD=$(PGPASSWORD) \
 	psql -v ON_ERROR_STOP=1 --no-psqlrc -c "\
 		INSERT INTO video_analysis (video_id, type, bucket, object_key, metadata) \
-		VALUES ($$ID, 'barpath', '$(BUCKET)', '$(USER_PREFIX)/Deadlift/barpath/deadlift-barpath.mp4', '{}'::jsonb);" ; \
+		VALUES ($$ID, 'barpath', '$(BUCKET)', '$(USER_PREFIX)/Deadlift/barpath/deadlift.mp4', '{}'::jsonb);" ; \
 	PGHOST=$(PGHOST) PGPORT=$(PGPORT) PGDATABASE=$(PGDATABASE) PGUSER=$(PGUSER) PGPASSWORD=$(PGPASSWORD) \
 	psql -v ON_ERROR_STOP=1 --no-psqlrc -c "\
 		INSERT INTO video_analysis (video_id, type, bucket, object_key, metadata) \
-		VALUES ($$ID, 'pose', '$(BUCKET)', '$(USER_PREFIX)/Deadlift/pose/deadlift-pose.mp4', '{}'::jsonb);"
+		VALUES ($$ID, 'pose', '$(BUCKET)', '$(USER_PREFIX)/Deadlift/pose/deadlift.mp4', '{}'::jsonb);"
 	@echo "Database insert finished"
 
