@@ -65,6 +65,46 @@ func judgeSquat(r RepReport) RepReport {
 }
 
 func judgeBench(r RepReport) RepReport {
-	r.Verdict = "ok"
+	flags := []string{}
+	verdict := "ok"
+
+	if ev, ok := r.Features["ecc_p95_vy_m_s"]; ok {
+		if thr, ok2 := thresholds["ecc_vy_warn_bench"]; ok2 && ev > thr {
+			flags = append(flags, "eccentric_too_fast")
+			verdict = "warn"
+		}
+	}
+
+	if sc, ok := r.Features["stall_count"]; ok && sc >= 1 {
+		flags = append(flags, "stall")
+		verdict = "warn"
+	}
+
+	if j, ok := r.Features["jcurve_dx_cm"]; ok {
+		if jmin, okMin := thresholds["jcurve_min"]; okMin && j < jmin {
+			flags = append(flags, "barpath_too_linear")
+			verdict = "warn"
+		} else if jmax, okMax := thresholds["jcurve_max"]; okMax && j > jmax {
+			flags = append(flags, "barpath_excessive_jcurve")
+			verdict = "warn"
+		}
+	}
+
+	if dx, ok := r.Features["drift_x_cm"]; ok {
+		if thr, ok2 := thresholds["drift_err"]; ok2 && math.Abs(dx) > thr {
+			flags = append(flags, "barpath_drift")
+			verdict = "warn"
+		}
+	}
+
+	if rms, ok := r.Features["rms_x_cm"]; ok {
+		if thr, ok2 := thresholds["rms_x_warn"]; ok2 && rms > thr {
+			flags = append(flags, "barpath_instability")
+			verdict = "warn"
+		}
+	}
+
+	r.Flags = flags
+	r.Verdict = verdict
 	return r
 }
