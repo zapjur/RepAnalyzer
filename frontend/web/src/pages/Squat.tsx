@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { useVideos } from '../contexts/VideosContext';
 import { useAuth0 } from '@auth0/auth0-react';
+import {Link} from "react-router-dom";
 
 const Squat: React.FC = () => {
     const { videos, fetchVideos } = useVideos();
@@ -28,12 +29,12 @@ const Squat: React.FC = () => {
                                 <source src={video.url} type="video/mp4" />
                                 Your browser does not support the video tag.
                             </video>
-                            <button
-                                className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition"
-                                onClick={() => window.location.href = `/analysis/${video.id}`}
+                            <Link
+                                className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition inline-block text-center"
+                                to={`/analysis/deadlift/${video.id}`}
                             >
                                 View Analysis
-                            </button>
+                            </Link>
                         </div>
                     ))}
                 </div>

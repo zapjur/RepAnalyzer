@@ -6,6 +6,7 @@ import BenchPress from "./pages/Bench";
 import Deadlift from "./pages/Deadlift";
 import Settings from "./pages/Settings";
 import AnalysisDeadliftPage from "./pages/AnalysisDeadliftPage";
+import AnalysisSquattPage from "./pages/AnalysisSquatPage";
 
 function App() {
     return (
@@ -19,6 +20,7 @@ function App() {
                     <Route path="settings" element={<Settings />} />
                 </Route>
                 <Route path="analysis/deadlift/:videoId" element={<AnalysisDeadliftPage />} />
+                <Route path="analysis/squat/:videoId" element={<AnalysisSquattPage />} />
             </Routes>
         </>
     );
