@@ -73,11 +73,6 @@ var thresholds = map[string]float64{
 	"jcurve_min": 1,
 	"jcurve_max": 8,
 
-	"stall_eps":     0.05,
-	"stall_min_s":   0.12,
-	"hitch_down_cm": 2.5,
-	"hitch_max_s":   0.20,
-
 	"torso_dl_err":  60,
 	"torso_sq_warn": 55,
 	"torso_sq_err":  60,

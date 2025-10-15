@@ -60,70 +60,101 @@ func minInt(a, b int) int {
 
 func segmentConcentric(bar []BarSample) []RepCut {
 	n := len(bar)
-	if n < 5 {
+	if n < 3 {
 		return nil
 	}
+
 	y := make([]float64, n)
 	for i := range bar {
 		y[i] = bar[i].Y
 	}
 	yS := movingAvg(y, 7)
 
-	isMax := func(i int) bool {
-		if i <= 0 || i >= n-1 {
-			return false
-		}
-		return yS[i] >= yS[i-1] && yS[i] > yS[i+1]
-	}
-	isMin := func(i int) bool {
-		if i <= 0 || i >= n-1 {
-			return false
-		}
-		return yS[i] <= yS[i-1] && yS[i] < yS[i+1]
-	}
+	vyStart := thresholds["seg_vy_start"]
+	vyStop := thresholds["seg_vy_stop"]
+	minDur := thresholds["seg_min_dur_s"]
+	minRise := thresholds["seg_min_vert_cm"]
+	quietS := thresholds["seg_quiet_s"]
 
-	var bottoms, tops []int
-	for i := 1; i < n-1; i++ {
-		if isMax(i) {
-			bottoms = append(bottoms, i)
+	type stateT int
+	const (
+		idle stateT = iota
+		up
+	)
+
+	state := idle
+	lastTop := -1
+	quietSince := -1.0
+	bottomIdx := -1
+
+	// pomocnicze: znajdź max/min yS w oknie czasowym wstecz (np. 0.25 s)
+	findLocalMaxBack := func(i int, winS float64) int {
+		best := i
+		tNow := bar[i].T
+		for j := i; j >= 0 && tNow-bar[j].T <= winS; j-- {
+			if yS[j] > yS[best] {
+				best = j
+			}
 		}
-		if isMin(i) {
-			tops = append(tops, i)
-		}
+		return best
 	}
-	if len(bottoms) == 0 || len(tops) == 0 {
-		return nil
+	findLocalMinBack := func(i int, winS float64) int {
+		best := i
+		tNow := bar[i].T
+		for j := i; j >= 0 && tNow-bar[j].T <= winS; j-- {
+			if yS[j] < yS[best] {
+				best = j
+			}
+		}
+		return best
 	}
 
 	var reps []RepCut
-	ti := 0
-	lastTop := 0
-	for _, b := range bottoms {
-		for ti < len(tops) && tops[ti] <= b {
-			lastTop = tops[ti]
-			ti++
+
+	for i := 0; i < n; i++ {
+		v := bar[i].VyS
+		if v == 0 {
+			v = bar[i].Vy
 		}
-		if ti >= len(tops) {
-			break
-		}
-		t := tops[ti]
-		if t <= b {
-			continue
-		}
-		dt := bar[t].T - bar[b].T
-		dyPx := yS[b] - yS[t]
-		mpp := bar[b].MPP
-		if mpp <= 0 {
-			mpp = bar[t].MPP
-		}
-		dyCm := dyPx * mpp * 100.0
-		if dt >= thresholds["seg_min_dur_s"] && dyCm >= thresholds["seg_min_vert_cm"] {
-			reps = append(reps, RepCut{Bottom: b, Top: t, PrevTop: lastTop})
+
+		switch state {
+		case idle:
+			if v > vyStart {
+				bottomIdx = findLocalMaxBack(i, 0.25)
+				state = up
+				quietSince = -1
+			}
+		case up:
+			if v < vyStop {
+				if quietSince < 0 {
+					quietSince = bar[i].T
+				}
+				if bar[i].T-quietSince >= quietS {
+					topIdx := findLocalMinBack(i, 0.25)
+					if bottomIdx >= 0 && topIdx > bottomIdx {
+						dt := bar[topIdx].T - bar[bottomIdx].T
+						mpp := bar[bottomIdx].MPP
+						if mpp <= 0 {
+							mpp = bar[topIdx].MPP
+						}
+						dyCm := (yS[bottomIdx] - yS[topIdx]) * mpp * 100.0
+						if dt >= minDur && dyCm >= minRise {
+							reps = append(reps, RepCut{Bottom: bottomIdx, Top: topIdx, PrevTop: lastTop})
+							lastTop = topIdx
+						}
+					}
+					state = idle
+					quietSince = -1
+					bottomIdx = -1
+				}
+			} else {
+				quietSince = -1
+			}
 		}
 	}
+
 	return reps
 }
-
 func mergeReps(bar []BarSample, reps []RepCut, fps float64, minDescentCm, maxGapS float64) []RepCut {
 	if len(reps) <= 1 {
 		return reps

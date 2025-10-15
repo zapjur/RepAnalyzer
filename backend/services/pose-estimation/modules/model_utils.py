@@ -1,4 +1,3 @@
-# models.py
 import torch
 from transformers import RTDetrForObjectDetection, VitPoseForPoseEstimation, AutoProcessor
 
